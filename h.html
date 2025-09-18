@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinTrack - Expense Tracker</title>
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --success: #16a34a;
+    }
+    .dark {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --danger: #f87171;
+      --success: #4ade80;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background: var(--card);
+      border-bottom: 1px solid var(--muted);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { font-weight: bold; }
+    .nav-actions { display: flex; gap: 10px; }
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: var(--primary);
+      color: #fff;
+    }
+    button.danger { background: var(--danger); }
+    button.secondary { background: var(--muted); color: #fff; }
+    /* Layout */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 220px;
+      background: var(--card);
+      border-right: 1px solid var(--muted);
+      padding: 15px;
+    }
+    .sidebar h3 { margin-top: 0; }
+    .sidebar button {
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      background: none;
+      color: var(--text);
+      text-align: left;
+    }
+    .sidebar button.active { background: var(--primary); color: #fff; }
+    .main {
+      flex: 1;
+      padding: 15px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+      gap: 15px;
+    }
+    .card {
+      background: var(--card);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .transactions {
+      margin-top: 15px;
+    }
+    .transactions ul {
+      list-style: none;
+      padding: 0;
+    }
+    .transactions li {
+      background: var(--card);
+      margin-bottom: 8px;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .transactions .amount.income { color: var(--success); }
+    .transactions .amount.expense { color: var(--danger); }
+    .transactions .amount.saving { color: var(--primary); }
+    .transactions .amount.loan { color: var(--muted); }
+    /* Forms */
+    form { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+    form input, form select {
+      padding: 6px;
+      border: 1px solid var(--muted);
+      border-radius: 6px;
+      flex: 1;
+      min-width: 120px;
+    }
+    /* Auth */
+    .auth {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .auth-box {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 350px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .auth-box h2 { margin-top: 0; }
+    .auth-box input { width: 100%; margin-bottom: 10px; }
+    .hidden { display: none; }
+    /* Responsive */
+    @media(max-width:768px){
+      .layout { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        display: none;
+      }
+      .sidebar.active { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Auth -->
+  <div class="auth" id="authContainer">
+    <div class="auth-box">
+      <h2 id="authTitle">Login</h2>
+      <input type="text" id="authName" placeholder="Name (Sign Up only)" class="hidden">
+      <input type="email" id="authEmail" placeholder="Email">
+      <input type="password" id="authPassword" placeholder="Password">
+      <label><input type="checkbox" id="rememberMe"> Remember Me</label>
+      <button id="authBtn">Login</button>
+      <p><a href="#" id="toggleAuth">Don't have an account? Sign Up</a></p>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="hidden">
+    <div class="navbar">
+      <div class="logo">FinTrack</div>
+      <div class="nav-actions">
+        <button id="toggleSidebar">☰</button>
+        <button id="darkToggle">🌙</button>
+        <button id="logout" class="danger">Logout</button>
+      </div>
+    </div>
+    <div class="layout">
+      <div class="sidebar" id="sidebar">
+        <h3>Menu</h3>
+        <button data-module="home" class="active">Dashboard</button>
+        <button data-module="expenses">Expenses</button>
+        <button data-module="income">Income</button>
+        <button data-module="savings">Savings</button>
+        <button data-module="loans">Loans</button>
+        <button data-module="reports">Reports</button>
+        <button data-module="settings">Settings</button>
+      </div>
+      <div class="main">
+        <!-- Dashboard -->
+        <div id="home" class="module">
+          <h2>Overview</h2>
+          <div class="cards">
+            <div class="card"><h3>Net Worth</h3><p id="netWorth">₹0</p></div>
+            <div class="card"><h3>Current Money</h3><p id="currentMoney">₹0</p></div>
+            <div class="card"><h3>Total Income</h3><p id="totalIncome">₹0</p></div>
+            <div class="card"><h3>Total Expenses</h3><p id="totalExpenses">₹0</p></div>
+            <div class="card"><h3>Total Savings</h3><p id="totalSavings">₹0</p></div>
+            <div class="card"><h3>Total Loans</h3><p id="totalLoans">₹0</p></div>
+          </div>
+        </div>
+        <!-- Expenses -->
+        <div id="expenses" class="module hidden">
+          <h2>Expenses</h2>
+          <form id="expenseForm">
+            <input type="text" id="expenseDesc" placeholder="Description" required>
+            <input type="number" id="expenseAmount" placeholder="Amount" required>
+            <button type="submit">Add Expense</button>
+          </form>
+          <div class="transactions">
+            <ul id="expenseList"></ul>
+          </div>
+        </div>
+        <!-- Income -->
+        <div id="income" class="module hidden">
+          <h2>Income</h2>
+          <form id="incomeForm">
+            <input type="text" id="incomeDesc" placeholder="Description" required>
+            <input type="number" id="incomeAmount" placeholder="Amount" required>
+            <button type="submit">Add Income</button>
+          </form>
+          <div class="transactions">
+            <ul id="incomeList"></ul>
+          </div>
+        </div>
+        <!-- Savings -->
+        <div id="savings" class="module hidden">
+          <h2>Savings</h2>
+          <form id="savingForm">
+            <input type="text" id="savingDesc" placeholder="Description" required>
+            <input type="number" id="savingAmount" placeholder="Amount" required>
+            <button type="submit">Add Saving</button>
+          </form>
+          <div class="transactions">
+            <ul id="savingList"></ul>
+          </div>
+        </div>
+        <!-- Loans -->
+        <div id="loans" class="module hidden">
+          <h2>Loans</h2>
+          <form id="loanForm">
+            <input type="text" id="loanDesc" placeholder="Description" required>
+            <input type="number" id="loanAmount" placeholder="Amount" required>
+            <label><input type="checkbox" id="loanGiven"> Given (uncheck if Taken)</label>
+            <button type="submit">Add Loan</button>
+          </form>
+          <div class="transactions">
+            <ul id="loanList"></ul>
+          </div>
+        </div>
+        <!-- Reports -->
+        <div id="reports" class="module hidden">
+          <h2>Reports</h2>
+          <button id="exportCSV">Export CSV</button>
+          <input type="file" id="importCSV">
+        </div>
+        <!-- Settings -->
+        <div id="settings" class="module hidden">
+          <h2>Settings</h2>
+          <p>More customization coming soon...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Auth ===
+    const authContainer = document.getElementById('authContainer');
+    const dashboard = document.getElementById('dashboard');
+    const authTitle = document.getElementById('authTitle');
+    const authName = document.getElementById('authName');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const rememberMe = document.getElementById('rememberMe');
+    const authBtn = document.getElementById('authBtn');
+    const toggleAuth = document.getElementById('toggleAuth');
+    let isLogin = true;
+
+    toggleAuth.addEventListener('click', e => {
+      e.preventDefault();
+      isLogin = !isLogin;
+      authTitle.textContent = isLogin ? "Login" : "Sign Up";
+      authName.classList.toggle('hidden', isLogin);
+      authBtn.textContent = isLogin ? "Login" : "Sign Up";
+      toggleAuth.textContent = isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login";
+    });
+
+    authBtn.addEventListener('click', () => {
+      if (!isLogin && !authName.value) { alert("Enter name"); return; }
+      if (!authEmail.value || !authPassword.value) { alert("Fill all fields"); return; }
+      if (rememberMe.checked) {
+        localStorage.setItem('user', JSON.stringify({name: authName.value || "User", email: authEmail.value}));
+      }
+      showDashboard();
+    });
+
+    function showDashboard(){
+      authContainer.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      updateTotals();
+    }
+    if (localStorage.getItem('user')) showDashboard();
+
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem('user');
+      location.reload();
+    });
+
+    // === Sidebar Navigation ===
+    const modules = document.querySelectorAll('.module');
+    document.querySelectorAll('.sidebar button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelector('.sidebar button.active').classList.remove('active');
+        btn.classList.add('active');
+        modules.forEach(m => m.classList.add('hidden'));
+        document.getElementById(btn.dataset.module).classList.remove('hidden');
+      });
+    });
+
+    // === Dark Mode ===
+    const darkToggle = document.getElementById('darkToggle');
+    if (localStorage.getItem('dark') === 'true') document.body.classList.add('dark');
+    darkToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('dark', document.body.classList.contains('dark'));
+    });
+
+    // === Sidebar Toggle Mobile ===
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('active');
+    });
+
+    // === Data & Transactions ===
+    let expenses=[], incomes=[], savings=[], loans=[];
+
+    function updateTotals(){
+      const totalIncome = incomes.reduce((a,b)=>a+b.amount,0);
+      const totalExpenses = expenses.reduce((a,b)=>a+b.amount,0);
+      const totalSavings = savings.reduce((a,b)=>a+b.amount,0);
+      const totalLoans = loans.reduce((a,b)=>a+b.amount,0);
+      const currentMoney = totalIncome-totalExpenses+totalLoans;
+      const netWorth = totalIncome-totalExpenses+totalSavings+totalLoans;
+      document.getElementById('totalIncome').textContent = "₹"+totalIncome;
+      document.getElementById('totalExpenses').textContent = "₹"+totalExpenses;
+      document.getElementById('totalSavings').textContent = "₹"+totalSavings;
+      document.getElementById('totalLoans').textContent = "₹"+totalLoans;
+      document.getElementById('currentMoney').textContent = "₹"+currentMoney;
+      document.getElementById('netWorth').textContent = "₹"+netWorth;
+    }
+
+    function renderList(list,element,type){
+      element.innerHTML="";
+      list.forEach((item,i)=>{
+        const li=document.createElement('li');
+        li.innerHTML=`<span>${item.desc}</span><span class="amount ${type}">₹${item.amount}</span>
+          <button class="danger" data-i="${i}">X</button>`;
+        li.querySelector('button').addEventListener('click',()=>{
+          list.splice(i,1); updateAll();
+        });
+        element.appendChild(li);
+      });
+    }
+
+    function updateAll(){
+      renderList(expenses,document.getElementById('expenseList'),'expense');
+      renderList(incomes,document.getElementById('incomeList'),'income');
+      renderList(savings,document.getElementById('savingList'),'saving');
+      renderList(loans,document.getElementById('loanList'),'loan');
+      updateTotals();
+    }
+
+    // Forms
+    document.getElementById('expenseForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      expenses.push({desc:expenseDesc.value,amount:+expenseAmount.value});
+      expenseDesc.value="";expenseAmount.value="";
+      updateAll();
+    });
+    document.getElementById('incomeForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      incomes.push({desc:incomeDesc.value,amount:+incomeAmount.value});
+      incomeDesc.value="";incomeAmount.value="";
+      updateAll();
+    });
+    document.getElementById('savingForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      savings.push({desc:savingDesc.value,amount:+savingAmount.value});
+      savingDesc.value="";savingAmount.value="";
+      updateAll();
+    });
+    document.getElementById('loanForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      loans.push({desc:loanDesc.value,amount:(loanGiven.checked?+loanAmount.value:+loanAmount.value)});
+      loanDesc.value="";loanAmount.value="";loanGiven.checked=false;
+      updateAll();
+    });
+
+    // === CSV Export/Import ===
+    document.getElementById('exportCSV').addEventListener('click',()=>{
+      let csv="Type,Description,Amount\\n";
+      expenses.forEach(e=>csv+=`Expense,${e.desc},${e.amount}\\n`);
+      incomes.forEach(i=>csv+=`Income,${i.desc},${i.amount}\\n`);
+      savings.forEach(s=>csv+=`Saving,${s.desc},${s.amount}\\n`);
+      loans.forEach(l=>csv+=`Loan,${l.desc},${l.amount}\\n`);
+      const blob=new Blob([csv],{type:"text/csv"});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download="fintrack.csv";
+      a.click();
+    });
+    document.getElementById('importCSV').addEventListener('change',e=>{
+      const file=e.target.files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=()=>{
+        const lines=reader.result.split("\\n").slice(1);
+        lines.forEach(line=>{
+          const [type,desc,amt]=line.split(",");
+          if(!desc)return;
+          const obj={desc,amount:+amt};
+          if(type==="Expense")expenses.push(obj);
+          else if(type==="Income")incomes.push(obj);
+          else if(type==="Saving")savings.push(obj);
+          else if(type==="Loan")loans.push(obj);
+        });
+        updateAll();
+      };
+      reader.readAsText(file);
+    });
+
+    // Demo data
+    incomes.push({desc:"Salary",amount:50000});
+    expenses.push({desc:"Groceries",amount:5000});
+    savings.push({desc:"Bank Deposit",amount:10000});
