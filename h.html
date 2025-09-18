@@ -1,40 +1,567 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinTrack - Expense Tracker</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --warning: #f8961e;
-            --info: #4895ef;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --background: #f0f2f5;
-            --card-bg: #ffffff;
-            --text: #333333;
-            --border: #dddfe2;
-        }
+<script>
+/* ---------- FinTrack App JS (paste before </body>) ---------- */
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+/* ======= Utility helpers ======= */
+const qs = sel => document.querySelector(sel);
+const qsa = sel => Array.from(document.querySelectorAll(sel));
+const currency = (n) => {
+  // Format as INR with 2 decimals
+  if (isNaN(n)) n = 0;
+  return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+const uid = () => 'id_' + Math.random().toString(36).slice(2, 9);
+const todayISO = () => new Date().toISOString().slice(0,10);
 
-        body {
-            background-color: var(--background);
-            color: var(--text);
-            padding-top: 70px;
-            min-height: 100vh;
-        }
+/* ======= Local Storage Keys & Defaults ======= */
+const LS_USER_KEY = 'fintrack_users';        // array of user objects {id,name,email,password}
+const LS_SESSION_KEY = 'fintrack_session';   // current logged-in user id
+const LS_REMEMBER_KEY = 'fintrack_remember'; // remembered email
+const LS_DATA_KEY = 'fintrack_data';         // object: {expenses:[],income:[],savings:[],loans:[],categories:{expenses:[],income:[]},people:[]}
 
+function loadJSON(key, fallback) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return fallback;
+  try { return JSON.parse(raw); } catch(e){ return fallback; }
+}
+function saveJSON(key, obj) { localStorage.setItem(key, JSON.stringify(obj)); }
+
+/* Initialize user & data stores if missing */
+if (!loadJSON(LS_USER_KEY, null)) saveJSON(LS_USER_KEY, []);
+if (!loadJSON(LS_DATA_KEY, null)) {
+  const defaults = {
+    expenses: [],
+    income: [],
+    savings: [],
+    loans: [], // {id,date,amount,person,type:'given'|'taken',description,paid:false}
+    categories: {
+      expenses: ['Food','Transport','Shopping','Bills','Entertainment','Other'],
+      income: ['Salary','Freelance','Interest','Other']
+    },
+    people: ['Friend','Family','Other']
+  };
+  saveJSON(LS_DATA_KEY, defaults);
+}
+
+/* ======= App State ======= */
+let DATA = loadJSON(LS_DATA_KEY, null);
+let USERS = loadJSON(LS_USER_KEY, []);
+let CURRENT_USER = loadJSON(LS_SESSION_KEY, null);
+
+/* ======= Element references ======= */
+const authContainer = qs('#authContainer');
+const dashboardEl = qs('#dashboard');
+const loginForm = qs('#loginForm');
+const signupForm = qs('#signupForm');
+const authToggleLink = qs('#authToggleLink');
+const authToggleText = qs('#authToggle');
+const rememberMe = qs('#rememberMe');
+const userNameEl = qs('#userName');
+const logoutBtn = qs('#logoutBtn');
+const themeToggle = qs('#themeToggle');
+const mobileMenuBtn = qs('#mobileMenuBtn');
+const sidebar = qs('#sidebar');
+const navLinks = qsa('.nav-links a');
+const sidebarLinks = qsa('.sidebar-menu a');
+const modules = {
+  dashboard: qs('#dashboardModule'),
+  expenses: qs('#expensesModule'),
+  income: qs('#incomeModule'),
+  savings: qs('#savingsModule'),
+  loans: qs('#loansModule')
+};
+const currentDateEl = qs('#currentDate');
+const totalBalanceEl = qs('#totalBalance');
+const totalIncomeEl = qs('#totalIncome');
+const totalExpensesEl = qs('#totalExpenses');
+const totalSavingsEl = qs('#totalSavings');
+const recentTransactionsEl = qs('#recentTransactions');
+
+/* Forms & lists */
+const expenseForm = qs('#expenseForm');
+const expensesList = qs('#expensesList');
+const expenseCategorySelect = qs('#expenseCategory');
+const expenseCategoryFilter = qs('#expenseCategoryFilter');
+const addCategoryBtn = qs('#addCategoryBtn');
+
+const incomeForm = qs('#incomeForm');
+const incomeList = qs('#incomeList');
+const incomeCategorySelect = qs('#incomeCategory');
+const incomeCategoryFilter = qs('#incomeCategoryFilter');
+const addIncomeCategoryBtn = qs('#addIncomeCategoryBtn');
+
+const savingsForm = qs('#savingsForm');
+const savingsList = qs('#savingsList');
+
+const loanForm = qs('#loanForm');
+const loansList = qs('#loansList');
+const addPersonBtn = qs('#addPersonBtn');
+const loanPersonSelect = qs('#loanPerson');
+const loanTypeBtns = qsa('.loan-type-btn');
+
+const exportBtn = qs('#exportBtn');
+const importBtn = qs('#importBtn');
+const importFile = qs('#importFile');
+
+const addExpenseBtn = qs('#addExpenseBtn'); // shows expenses module
+const addIncomeBtn = qs('#addIncomeBtn');
+const addSavingsBtn = qs('#addSavingsBtn');
+const addLoanBtn = qs('#addLoanBtn');
+
+/* ======= Auth (Signup/Login/Session) ======= */
+function showAuth(show=true) {
+  authContainer.style.display = show ? 'flex' : 'none';
+  dashboardEl.style.display = show ? 'none' : 'block';
+}
+function toggleAuthForms() {
+  const showingLogin = loginForm.style.display !== 'none';
+  loginForm.style.display = showingLogin ? 'none' : 'block';
+  signupForm.style.display = showingLogin ? 'block' : 'none';
+  authToggleText.innerHTML = showingLogin
+    ? 'Already have an account? <a href="#" id="authToggleLink">Login</a>'
+    : 'Don\'t have an account? <a href="#" id="authToggleLink">Sign Up</a>';
+}
+authToggleLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  toggleAuthForms();
+});
+
+/* Pre-fill remembered email */
+const rememberedEmail = localStorage.getItem(LS_REMEMBER_KEY);
+if (rememberedEmail) {
+  const loginEmail = qs('#loginEmail');
+  if (loginEmail) loginEmail.value = rememberedEmail;
+  rememberMe.checked = true;
+}
+
+/* Signup */
+signupForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = qs('#signupName').value.trim();
+  const email = qs('#signupEmail').value.trim().toLowerCase();
+  const password = qs('#signupPassword').value;
+  if (!name || !email || !password) { alert('Please fill required fields'); return; }
+  if (USERS.find(u => u.email === email)) { alert('User with this email already exists'); return; }
+  const newUser = { id: uid(), name, email, password };
+  USERS.push(newUser);
+  saveJSON(LS_USER_KEY, USERS);
+  // auto login
+  CURRENT_USER = newUser.id;
+  saveJSON(LS_SESSION_KEY, CURRENT_USER);
+  onLogin();
+});
+
+/* Login */
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const email = qs('#loginEmail').value.trim().toLowerCase();
+  const password = qs('#loginPassword').value;
+  const user = USERS.find(u => u.email === email && u.password === password);
+  if (!user) { alert('Invalid credentials'); return; }
+  CURRENT_USER = user.id;
+  saveJSON(LS_SESSION_KEY, CURRENT_USER);
+  // remember me
+  if (qs('#rememberMe').checked) localStorage.setItem(LS_REMEMBER_KEY, email);
+  else localStorage.removeItem(LS_REMEMBER_KEY);
+  onLogin();
+});
+
+/* Logout */
+logoutBtn.addEventListener('click', () => {
+  CURRENT_USER = null;
+  localStorage.removeItem(LS_SESSION_KEY);
+  showAuth(true);
+});
+
+/* On Login actions */
+function onLogin() {
+  const user = USERS.find(u => u.id === CURRENT_USER);
+  if (!user) { showAuth(true); return; }
+  qs('#userName').textContent = user.name.split(' ')[0] || user.name;
+  showAuth(false);
+  currentDateEl.textContent = new Date().toLocaleString();
+  renderAll();
+}
+
+/* Auto-login if session exists */
+if (CURRENT_USER) onLogin();
+
+/* ======= Theme / Mobile ======= */
+themeToggle.addEventListener('change', () => {
+  document.documentElement.classList.toggle('dark-mode', themeToggle.checked);
+});
+mobileMenuBtn.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+});
+
+/* ======= Module Navigation ======= */
+function showModule(name) {
+  Object.values(modules).forEach(m => m.style.display = 'none');
+  if (modules[name]) modules[name].style.display = 'block';
+  // update nav active classes
+  navLinks.forEach(a => a.classList.toggle('active', a.dataset.module === name));
+  sidebarLinks.forEach(a => a.classList.toggle('active', a.dataset.module === name));
+}
+navLinks.forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); showModule(a.dataset.module); }));
+sidebarLinks.forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); showModule(a.dataset.module); }));
+
+/* Quick module shortcuts (add buttons) */
+addExpenseBtn?.addEventListener('click', () => showModule('expenses'));
+addIncomeBtn?.addEventListener('click', () => showModule('income'));
+addSavingsBtn?.addEventListener('click', () => showModule('savings'));
+addLoanBtn?.addEventListener('click', () => showModule('loans'));
+
+/* ======= Data Helpers ======= */
+function saveData() { saveJSON(LS_DATA_KEY, DATA); }
+function reloadData() { DATA = loadJSON(LS_DATA_KEY, DATA); }
+
+/* Initialize selects from DATA */
+function populateCategoriesAndPeople() {
+  // expense categories
+  expenseCategorySelect.innerHTML = '<option value="">Select Category</option>';
+  expenseCategoryFilter.innerHTML = '<option value="all">All Categories</option>';
+  DATA.categories.expenses.forEach(cat => {
+    const opt = document.createElement('option'); opt.value = cat; opt.textContent = cat; expenseCategorySelect.appendChild(opt);
+    const opt2 = document.createElement('option'); opt2.value = cat; opt2.textContent = cat; expenseCategoryFilter.appendChild(opt2);
+  });
+  // income categories
+  incomeCategorySelect.innerHTML = '<option value="">Select Category</option>';
+  incomeCategoryFilter.innerHTML = '<option value="all">All Categories</option>';
+  DATA.categories.income.forEach(cat => {
+    const opt = document.createElement('option'); opt.value = cat; opt.textContent = cat; incomeCategorySelect.appendChild(opt);
+    const opt2 = document.createElement('option'); opt2.value = cat; opt2.textContent = cat; incomeCategoryFilter.appendChild(opt2);
+  });
+  // people
+  loanPersonSelect.innerHTML = '<option value="">Select Person</option>';
+  DATA.people.forEach(p => {
+    const opt = document.createElement('option'); opt.value = p; opt.textContent = p; loanPersonSelect.appendChild(opt);
+  });
+}
+
+/* Add category or person prompts */
+addCategoryBtn.addEventListener('click', () => {
+  const name = prompt('Add new expense category:');
+  if (name && !DATA.categories.expenses.includes(name)) {
+    DATA.categories.expenses.push(name); saveData(); populateCategoriesAndPeople(); alert('Category added');
+  }
+});
+addIncomeCategoryBtn.addEventListener('click', () => {
+  const name = prompt('Add new income category:');
+  if (name && !DATA.categories.income.includes(name)) {
+    DATA.categories.income.push(name); saveData(); populateCategoriesAndPeople(); alert('Category added');
+  }
+});
+addPersonBtn.addEventListener('click', () => {
+  const name = prompt('Add new person:');
+  if (name && !DATA.people.includes(name)) {
+    DATA.people.push(name); saveData(); populateCategoriesAndPeople(); alert('Person added');
+  }
+});
+
+/* ======= Render / Stats Calculation ======= */
+function calcStats() {
+  const incomeSum = DATA.income.reduce((s, it) => s + Number(it.amount || 0), 0);
+  const expenseSum = DATA.expenses.reduce((s, it) => s + Number(it.amount || 0), 0);
+  const savingsSum = DATA.savings.reduce((s, it) => {
+    // type add -> +amount, withdraw -> -amount
+    return s + (it.type === 'add' ? Number(it.amount || 0) : -Number(it.amount || 0));
+  }, 0);
+  const loansGiven = DATA.loans.filter(l => l.type === 'given').reduce((s, l) => s + Number(l.amount || 0), 0);
+  const loansTaken = DATA.loans.filter(l => l.type === 'taken').reduce((s, l) => s + Number(l.amount || 0), 0);
+  const netLoan = loansGiven - loansTaken; // positive = you are owed, negative = you owe
+  // net worth per user preference: savings + income + loanTotal - expenses
+  const netWorth = savingsSum + incomeSum + netLoan - expenseSum;
+  const currentMoney = incomeSum - expenseSum + netLoan;
+
+  return { incomeSum, expenseSum, savingsSum, loansGiven, loansTaken, netLoan, netWorth, currentMoney };
+}
+
+function renderStats() {
+  const s = calcStats();
+  totalIncomeEl.textContent = currency(s.incomeSum);
+  totalExpensesEl.textContent = currency(s.expenseSum);
+  totalSavingsEl.textContent = currency(s.savingsSum);
+  totalBalanceEl.textContent = currency(s.currentMoney);
+  // Also show net worth below date (optional)
+  currentDateEl.textContent = `Net Worth: ${currency(s.netWorth)} • Updated: ${new Date().toLocaleString()}`;
+}
+
+/* Helpers to create transaction DOM node */
+function createTransactionNode(tx, type) {
+  const item = document.createElement('div'); item.className = 'transaction-item'; item.dataset.id = tx.id;
+  const details = document.createElement('div'); details.className = 'transaction-details';
+  const title = document.createElement('div'); title.className = 'transaction-title';
+  const meta = document.createElement('div'); meta.className = 'transaction-meta';
+  const amount = document.createElement('div'); amount.className = 'transaction-amount';
+  // title
+  title.textContent = tx.description || (tx.category || tx.person || type.charAt(0).toUpperCase() + type.slice(1));
+  // meta content
+  meta.innerHTML = `<span>${tx.date}</span><span>${tx.category || tx.person || ''}</span>`;
+  // amount styling
+  amount.textContent = (type === 'income' || (type === 'savings' && tx.type === 'add') || (type === 'loans' && tx.type==='given')) ? currency(tx.amount) : currency(tx.amount);
+  if (type === 'expenses') amount.classList.add('expense-amount');
+  if (type === 'income') amount.classList.add('income-amount');
+
+  details.appendChild(title);
+  details.appendChild(meta);
+
+  const actions = document.createElement('div'); actions.className = 'transaction-actions';
+  const del = document.createElement('button'); del.className = 'btn-delete'; del.innerHTML = '<i class="fas fa-trash"></i>';
+  del.addEventListener('click', () => {
+    if (!confirm('Delete this transaction?')) return;
+    deleteTransaction(tx.id, type);
+  });
+  actions.appendChild(del);
+
+  // loans: add paid toggle
+  if (type === 'loans') {
+    const paidChk = document.createElement('input'); paidChk.type = 'checkbox'; paidChk.checked = !!tx.paid;
+    paidChk.addEventListener('change', () => { toggleLoanPaid(tx.id, paidChk.checked); });
+    const paidLabel = document.createElement('label'); paidLabel.style.marginLeft = '8px'; paidLabel.textContent = 'Paid';
+    actions.appendChild(paidChk);
+    actions.appendChild(paidLabel);
+  }
+
+  item.appendChild(details);
+  item.appendChild(amount);
+  item.appendChild(actions);
+  return item;
+}
+
+/* Render lists */
+function renderLists() {
+  // Recent transactions (mix last 8 by date)
+  const all = [
+    ...DATA.income.map(i=>({...i, __type:'income'})),
+    ...DATA.expenses.map(e=>({...e, __type:'expenses'})),
+    ...DATA.savings.map(s=>({...s, __type:'savings'})),
+    ...DATA.loans.map(l=>({...l, __type:'loans'}))
+  ];
+  all.sort((a,b)=> new Date(b.date) - new Date(a.date));
+  recentTransactionsEl.innerHTML = '';
+  all.slice(0,8).forEach(tx => {
+    const node = createTransactionNode(tx, tx.__type);
+    recentTransactionsEl.appendChild(node);
+  });
+
+  // Expenses list
+  expensesList.innerHTML = '';
+  DATA.expenses.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(e=> expensesList.appendChild(createTransactionNode(e,'expenses')));
+
+  // Income list
+  incomeList.innerHTML = '';
+  DATA.income.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(i=> incomeList.appendChild(createTransactionNode(i,'income')));
+
+  // Savings list
+  savingsList.innerHTML = '';
+  DATA.savings.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(s=> {
+    const node = createTransactionNode(s,'savings');
+    // show type add/withdraw in meta
+    const meta = node.querySelector('.transaction-meta');
+    if (meta) meta.innerHTML += `<span>${s.type === 'add' ? 'Added' : 'Withdrawn'}</span>`;
+    savingsList.appendChild(node);
+  });
+
+  // Loans list
+  loansList.innerHTML = '';
+  DATA.loans.slice().sort((a,b)=> new Date(b.date)-new Date(a.date)).forEach(l=> {
+    const node = createTransactionNode(l,'loans');
+    const meta = node.querySelector('.transaction-meta');
+    if (meta) meta.innerHTML += `<span>${l.type === 'given' ? 'Given' : 'Taken'}</span><span>${l.paid ? 'Paid' : 'Pending'}</span>`;
+    loansList.appendChild(node);
+  });
+}
+
+/* Re-render everything */
+function renderAll() {
+  reloadData();
+  populateCategoriesAndPeople();
+  renderStats();
+  renderLists();
+}
+
+/* ======= CRUD actions ======= */
+function addTransaction(obj, type) {
+  const t = { ...obj, id: uid() };
+  DATA[type].push(t);
+  saveData();
+  renderAll();
+}
+function deleteTransaction(id, type) {
+  DATA[type] = DATA[type].filter(it => it.id !== id);
+  saveData();
+  renderAll();
+}
+function toggleLoanPaid(id, paid) {
+  const loan = DATA.loans.find(l => l.id === id);
+  if (!loan) return;
+  loan.paid = !!paid;
+  saveData();
+  renderAll();
+}
+
+/* ======= Form handlers ======= */
+// Expenses
+expenseForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const d = qs('#expenseDate').value || todayISO();
+  const amount = Number(qs('#expenseAmount').value) || 0;
+  const category = expenseCategorySelect.value;
+  const description = qs('#expenseDescription').value.trim();
+  if (!category) { alert('Select a category'); return; }
+  addTransaction({ date: d, amount, category, description }, 'expenses');
+  expenseForm.reset();
+  qs('#expenseDate').value = todayISO();
+});
+
+// Income
+incomeForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const d = qs('#incomeDate').value || todayISO();
+  const amount = Number(qs('#incomeAmount').value) || 0;
+  const category = incomeCategorySelect.value;
+  const description = qs('#incomeDescription').value.trim();
+  if (!category) { alert('Select a category'); return; }
+  addTransaction({ date: d, amount, category, description }, 'income');
+  incomeForm.reset();
+  qs('#incomeDate').value = todayISO();
+});
+
+// Savings
+savingsForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const d = qs('#savingsDate').value || todayISO();
+  const amount = Number(qs('#savingsAmount').value) || 0;
+  const type = qs('#savingsType').value;
+  const description = qs('#savingsDescription').value.trim();
+  if (!type) { alert('Select savings type'); return; }
+  addTransaction({ date: d, amount, type, description }, 'savings');
+  savingsForm.reset();
+  qs('#savingsDate').value = todayISO();
+});
+
+// Loans
+loanForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const d = qs('#loanDate').value || todayISO();
+  const amount = Number(qs('#loanAmount').value) || 0;
+  const person = loanPersonSelect.value;
+  const description = qs('#loanDescription').value.trim();
+  const paid = !!qs('#loanPaid').checked;
+  // determine active loan type button
+  const active = loanTypeBtns.find(b => b.classList.contains('active'))?.dataset?.type || 'given';
+  if (!person) { alert('Select person'); return; }
+  addTransaction({ date: d, amount, person, description, paid, type: active }, 'loans');
+  loanForm.reset();
+  qs('#loanDate').value = todayISO();
+});
+
+/* Loan type button toggle */
+loanTypeBtns.forEach(b => {
+  b.addEventListener('click', () => {
+    loanTypeBtns.forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+
+/* ======= Export / Import CSV ======= */
+function exportCSV() {
+  // combine all arrays into a CSV with a column for type
+  const rows = [];
+  rows.push(['type','id','date','amount','category_or_person','subtype','description','paid'].join(','));
+  DATA.income.forEach(i => rows.push(['income',i.id,i.date, i.amount, i.category || '', '', `"${(i.description||'').replace(/"/g,'""')}"`, ''].join(',')));
+  DATA.expenses.forEach(e => rows.push(['expenses',e.id,e.date, e.amount, e.category || '', '', `"${(e.description||'').replace(/"/g,'""')}"`, ''].join(',')));
+  DATA.savings.forEach(s => rows.push(['savings',s.id,s.date, s.amount, '', s.type, `"${(s.description||'').replace(/"/g,'""')}"`, ''].join(',')));
+  DATA.loans.forEach(l => rows.push(['loans',l.id,l.date, l.amount, l.person || '', l.type, `"${(l.description||'').replace(/"/g,'""')}"`, l.paid ? '1' : '0'].join(',')));
+  const csv = rows.join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'fintrack_export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+exportBtn.addEventListener('click', exportCSV);
+
+importBtn.addEventListener('click', () => importFile.click());
+importFile.addEventListener('change', (ev) => {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    parseImportCSV(r.result);
+    importFile.value = '';
+  };
+  r.readAsText(f);
+});
+
+function parseImportCSV(text) {
+  // naive CSV parse (simple format as exported)
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if (lines.length < 2) { alert('CSV appears empty'); return; }
+  const header = lines.shift().split(',');
+  for (const ln of lines) {
+    const cols = splitCSVLine(ln);
+    const type = cols[0];
+    const id = cols[1] || uid();
+    const date = cols[2] || todayISO();
+    const amount = Number(cols[3]||0);
+    const cOrP = cols[4] || '';
+    const subtype = cols[5] || '';
+    const description = (cols[6] || '').replace(/^"|"$/g,'').replace(/""/g,'"');
+    const paid = cols[7] === '1';
+    if (type === 'income') DATA.income.push({ id, date, amount, category: cOrP, description });
+    if (type === 'expenses') DATA.expenses.push({ id, date, amount, category: cOrP, description });
+    if (type === 'savings') DATA.savings.push({ id, date, amount, type: subtype || 'add', description });
+    if (type === 'loans') DATA.loans.push({ id, date, amount, person: cOrP, type: subtype || 'given', description, paid });
+    // add categories/people if new
+    if (type === 'expenses' && cOrP && !DATA.categories.expenses.includes(cOrP)) DATA.categories.expenses.push(cOrP);
+    if (type === 'income' && cOrP && !DATA.categories.income.includes(cOrP)) DATA.categories.income.push(cOrP);
+    if (type === 'loans' && cOrP && !DATA.people.includes(cOrP)) DATA.people.push(cOrP);
+  }
+  saveData();
+  renderAll();
+  alert('Import complete');
+}
+function splitCSVLine(line) {
+  // support fields that may be quoted and contain commas
+  const out = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i=0;i<line.length;i++) {
+    const ch = line[i];
+    if (ch === '"' ) { inQuotes = !inQuotes; cur += ch; continue; }
+    if (ch === ',' && !inQuotes) { out.push(cur.replace(/^"|"$/g,"")); cur = ''; continue; }
+    cur += ch;
+  }
+  if (cur !== '') out.push(cur.replace(/^"|"$/g,""));
+  return out;
+}
+
+/* ======= Filters & Sorting (basic) ======= */
+expenseCategoryFilter.addEventListener('change', () => {
+  const val = expenseCategoryFilter.value;
+  const items = qsa('#expensesList .transaction-item');
+  items.forEach(i => {
+    const meta = i.querySelector('.transaction-meta')?.textContent || '';
+    i.style.display = (val === 'all' || meta.includes(val)) ? 'flex' : 'none';
+  });
+});
+incomeCategoryFilter.addEventListener('change', () => {
+  const val = incomeCategoryFilter.value;
+  const items = qsa('#incomeList .transaction-item');
+  items.forEach(i => {
+    const meta = i.querySelector('.transaction-meta')?.textContent || '';
+    i.style.display = (val === 'all' || meta.includes(val)) ? 'flex' : 'none';
+  });
+});
+
+/* ======= Init defaults ======= */
+qs('#expenseDate').value = todayISO();
+qs('#incomeDate').value = todayISO();
+qs('#savingsDate').value = todayISO();
+qs('#loanDate').value = todayISO();
+
+renderAll();
+showModule('dashboard');
+
+/* End of script */
+</script>
         /* Fixed Navbar */
         .navbar {
             position: fixed;
