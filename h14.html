@@ -40,6 +40,7 @@
             color: var(--text);
             transition: all 0.3s ease;
             padding-top: 80px; /* Account for fixed navbar */
+            line-height: 1.6;
         }
 
         .container {
@@ -76,6 +77,11 @@
         .auth-header h1 {
             font-weight: 600;
             font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .auth-header p {
+            opacity: 0.9;
         }
 
         .auth-form {
@@ -199,6 +205,9 @@
             font-size: 24px;
             font-weight: 700;
             color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .nav-links {
@@ -574,6 +583,17 @@
             color: var(--text);
         }
 
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .paid-loan {
+            opacity: 0.7;
+            text-decoration: line-through;
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
             .dashboard-content {
@@ -681,12 +701,65 @@
             .transaction-actions {
                 align-self: flex-end;
             }
+            
+            .form-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Auth Container -->
-    
+    <div class="auth-container" id="authContainer">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>FinTrack</h1>
+                <p>Track your expenses and manage your money</p>
+            </div>
+            <div class="auth-form" id="authForm">
+                <!-- Login Form -->
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="rememberMe">
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+                
+                <!-- Signup Form -->
+                <form id="signupForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="signupName">Full Name</label>
+                        <input type="text" id="signupName" class="form-control" placeholder="Enter your name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" id="signupEmail" class="form-control" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" class="form-control" placeholder="Create a password" required>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="termsAgree">
+                        <label for="termsAgree">I agree to the terms and conditions</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                </form>
+            </div>
+            <div class="auth-footer">
+                <p id="authToggle">Don't have an account? <a href="#" id="authToggleLink">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
 
     <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
@@ -696,7 +769,9 @@
                 <button class="mobile-menu-btn" id="mobileMenuBtn">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div class="brand">FinTrack</div>
+                <div class="brand">
+                    <i class="fas fa-wallet"></i> FinTrack
+                </div>
                 <div class="nav-links">
                     <a href="#" class="active" data-module="dashboard">Dashboard</a>
                     <a href="#" data-module="expenses">Expenses</a>
@@ -706,7 +781,7 @@
                 </div>
                 <div class="user-section">
                     <span class="user-greeting">Hi, <span id="userName">User</span></span>
-                    <label class="theme-switch">
+                    <label class="theme-switch" for="themeToggle">
                         <input type="checkbox" id="themeToggle">
                         <span class="slider"></span>
                     </label>
@@ -837,7 +912,7 @@
                         </div>
                         
                         <div class="module-content">
-                            <form id="expenseForm">
+                            <form id="expenseForm" style="display: none;">
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="expenseDate">Date</label>
@@ -866,7 +941,10 @@
                                     <textarea id="expenseDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary">Save Expense</button>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Expense</button>
+                                    <button type="button" class="btn btn-danger" id="cancelExpenseBtn">Cancel</button>
+                                </div>
                             </form>
                             
                             <div class="transaction-list" id="expensesList">
@@ -898,7 +976,7 @@
                         </div>
                         
                         <div class="module-content">
-                            <form id="incomeForm">
+                            <form id="incomeForm" style="display: none;">
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="incomeDate">Date</label>
@@ -927,7 +1005,10 @@
                                     <textarea id="incomeDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary">Save Income</button>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Income</button>
+                                    <button type="button" class="btn btn-danger" id="cancelIncomeBtn">Cancel</button>
+                                </div>
                             </form>
                             
                             <div class="transaction-list" id="incomeList">
@@ -959,7 +1040,7 @@
                         </div>
                         
                         <div class="module-content">
-                            <form id="savingsForm">
+                            <form id="savingsForm" style="display: none;">
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="savingsDate">Date</label>
@@ -986,7 +1067,10 @@
                                     <textarea id="savingsDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary">Save</button>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                    <button type="button" class="btn btn-danger" id="cancelSavingsBtn">Cancel</button>
+                                </div>
                             </form>
                             
                             <div class="transaction-list" id="savingsList">
@@ -1024,7 +1108,7 @@
                         </div>
                         
                         <div class="module-content">
-                            <form id="loanForm">
+                            <form id="loanForm" style="display: none;">
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="loanDate">Date</label>
@@ -1053,7 +1137,10 @@
                                     <textarea id="loanDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary">Save Loan</button>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Loan</button>
+                                    <button type="button" class="btn btn-danger" id="cancelLoanBtn">Cancel</button>
+                                </div>
                             </form>
                             
                             <div class="transaction-list" id="loansList">
@@ -1086,6 +1173,24 @@
             const exportBtn = document.getElementById('exportBtn');
             const importBtn = document.getElementById('importBtn');
             const importFile = document.getElementById('importFile');
+            
+            // Form buttons
+            const addExpenseBtn = document.getElementById('addExpenseBtn');
+            const addIncomeBtn = document.getElementById('addIncomeBtn');
+            const addSavingsBtn = document.getElementById('addSavingsBtn');
+            const addLoanBtn = document.getElementById('addLoanBtn');
+            
+            // Cancel buttons
+            const cancelExpenseBtn = document.getElementById('cancelExpenseBtn');
+            const cancelIncomeBtn = document.getElementById('cancelIncomeBtn');
+            const cancelSavingsBtn = document.getElementById('cancelSavingsBtn');
+            const cancelLoanBtn = document.getElementById('cancelLoanBtn');
+            
+            // Forms
+            const expenseForm = document.getElementById('expenseForm');
+            const incomeForm = document.getElementById('incomeForm');
+            const savingsForm = document.getElementById('savingsForm');
+            const loanForm = document.getElementById('loanForm');
             
             // Set current date
             const today = new Date();
@@ -1263,7 +1368,7 @@
                 btn.addEventListener('click', function() {
                     loanTypeBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    // Here you would filter loans by type
+                    displayLoans();
                 });
             });
             
@@ -1306,148 +1411,193 @@
                 }
             });
             
+            // Show/hide forms
+            addExpenseBtn.addEventListener('click', function() {
+                expenseForm.style.display = 'block';
+                addExpenseBtn.style.display = 'none';
+            });
+            
+            cancelExpenseBtn.addEventListener('click', function() {
+                expenseForm.style.display = 'none';
+                addExpenseBtn.style.display = 'block';
+                expenseForm.reset();
+                document.getElementById('expenseDate').value = formattedToday;
+            });
+            
+            addIncomeBtn.addEventListener('click', function() {
+                incomeForm.style.display = 'block';
+                addIncomeBtn.style.display = 'none';
+            });
+            
+            cancelIncomeBtn.addEventListener('click', function() {
+                incomeForm.style.display = 'none';
+                addIncomeBtn.style.display = 'block';
+                incomeForm.reset();
+                document.getElementById('incomeDate').value = formattedToday;
+            });
+            
+            addSavingsBtn.addEventListener('click', function() {
+                savingsForm.style.display = 'block';
+                addSavingsBtn.style.display = 'none';
+            });
+            
+            cancelSavingsBtn.addEventListener('click', function() {
+                savingsForm.style.display = 'none';
+                addSavingsBtn.style.display = 'block';
+                savingsForm.reset();
+                document.getElementById('savingsDate').value = formattedToday;
+            });
+            
+            addLoanBtn.addEventListener('click', function() {
+                loanForm.style.display = 'block';
+                addLoanBtn.style.display = 'none';
+            });
+            
+            cancelLoanBtn.addEventListener('click', function() {
+                loanForm.style.display = 'none';
+                addLoanBtn.style.display = 'block';
+                loanForm.reset();
+                document.getElementById('loanDate').value = formattedToday;
+            });
+            
             // Expense form submission
-            const expenseForm = document.getElementById('expenseForm');
-            if (expenseForm) {
-                expenseForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
+            expenseForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('expenseAmount').value);
+                const category = document.getElementById('expenseCategory').value;
+                const date = document.getElementById('expenseDate').value;
+                const description = document.getElementById('expenseDescription').value;
+                
+                if (amount && category && date) {
+                    const expense = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount,
+                        category,
+                        date,
+                        description,
+                        type: 'expense'
+                    };
                     
-                    const amount = parseFloat(document.getElementById('expenseAmount').value);
-                    const category = document.getElementById('expenseCategory').value;
-                    const date = document.getElementById('expenseDate').value;
-                    const description = document.getElementById('expenseDescription').value;
+                    expenses.push(expense);
+                    localStorage.setItem('expenses', JSON.stringify(expenses));
                     
-                    if (amount && category && date) {
-                        const expense = {
-                            id: Date.now(),
-                            userId: currentUser.email,
-                            amount,
-                            category,
-                            date,
-                            description,
-                            type: 'expense'
-                        };
-                        
-                        expenses.push(expense);
-                        localStorage.setItem('expenses', JSON.stringify(expenses));
-                        
-                        alert(`Expense of $${amount} for ${category} has been saved!`);
-                        expenseForm.reset();
-                        document.getElementById('expenseDate').value = formattedToday;
-                        
-                        displayExpenses();
-                        updateDashboard();
-                    }
-                });
-            }
+                    alert(`Expense of $${amount} for ${category} has been saved!`);
+                    expenseForm.reset();
+                    document.getElementById('expenseDate').value = formattedToday;
+                    expenseForm.style.display = 'none';
+                    addExpenseBtn.style.display = 'block';
+                    
+                    displayExpenses();
+                    updateDashboard();
+                }
+            });
             
             // Income form submission
-            const incomeForm = document.getElementById('incomeForm');
-            if (incomeForm) {
-                incomeForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
+            incomeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('incomeAmount').value);
+                const category = document.getElementById('incomeCategory').value;
+                const date = document.getElementById('incomeDate').value;
+                const description = document.getElementById('incomeDescription').value;
+                
+                if (amount && category && date) {
+                    const incomeItem = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount,
+                        category,
+                        date,
+                        description,
+                        type: 'income'
+                    };
                     
-                    const amount = parseFloat(document.getElementById('incomeAmount').value);
-                    const category = document.getElementById('incomeCategory').value;
-                    const date = document.getElementById('incomeDate').value;
-                    const description = document.getElementById('incomeDescription').value;
+                    income.push(incomeItem);
+                    localStorage.setItem('income', JSON.stringify(income));
                     
-                    if (amount && category && date) {
-                        const incomeItem = {
-                            id: Date.now(),
-                            userId: currentUser.email,
-                            amount,
-                            category,
-                            date,
-                            description,
-                            type: 'income'
-                        };
-                        
-                        income.push(incomeItem);
-                        localStorage.setItem('income', JSON.stringify(income));
-                        
-                        alert(`Income of $${amount} from ${category} has been saved!`);
-                        incomeForm.reset();
-                        document.getElementById('incomeDate').value = formattedToday;
-                        
-                        displayIncome();
-                        updateDashboard();
-                    }
-                });
-            }
+                    alert(`Income of $${amount} from ${category} has been saved!`);
+                    incomeForm.reset();
+                    document.getElementById('incomeDate').value = formattedToday;
+                    incomeForm.style.display = 'none';
+                    addIncomeBtn.style.display = 'block';
+                    
+                    displayIncome();
+                    updateDashboard();
+                }
+            });
             
             // Savings form submission
-            const savingsForm = document.getElementById('savingsForm');
-            if (savingsForm) {
-                savingsForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
+            savingsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('savingsAmount').value);
+                const type = document.getElementById('savingsType').value;
+                const date = document.getElementById('savingsDate').value;
+                const description = document.getElementById('savingsDescription').value;
+                
+                if (amount && type && date) {
+                    const savingsItem = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount: type === 'withdraw' ? -amount : amount,
+                        type: type,
+                        date,
+                        description,
+                        transactionType: 'savings'
+                    };
                     
-                    const amount = parseFloat(document.getElementById('savingsAmount').value);
-                    const type = document.getElementById('savingsType').value;
-                    const date = document.getElementById('savingsDate').value;
-                    const description = document.getElementById('savingsDescription').value;
+                    savings.push(savingsItem);
+                    localStorage.setItem('savings', JSON.stringify(savings));
                     
-                    if (amount && type && date) {
-                        const savingsItem = {
-                            id: Date.now(),
-                            userId: currentUser.email,
-                            amount: type === 'withdraw' ? -amount : amount,
-                            type: type,
-                            date,
-                            description,
-                            transactionType: 'savings'
-                        };
-                        
-                        savings.push(savingsItem);
-                        localStorage.setItem('savings', JSON.stringify(savings));
-                        
-                        alert(`Savings ${type === 'add' ? 'addition' : 'withdrawal'} of $${amount} has been saved!`);
-                        savingsForm.reset();
-                        document.getElementById('savingsDate').value = formattedToday;
-                        
-                        displaySavings();
-                        updateDashboard();
-                    }
-                });
-            }
+                    alert(`Savings ${type === 'add' ? 'addition' : 'withdrawal'} of $${amount} has been saved!`);
+                    savingsForm.reset();
+                    document.getElementById('savingsDate').value = formattedToday;
+                    savingsForm.style.display = 'none';
+                    addSavingsBtn.style.display = 'block';
+                    
+                    displaySavings();
+                    updateDashboard();
+                }
+            });
             
             // Loan form submission
-            const loanForm = document.getElementById('loanForm');
-            if (loanForm) {
-                loanForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
+            loanForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('loanAmount').value);
+                const person = document.getElementById('loanPerson').value;
+                const date = document.getElementById('loanDate').value;
+                const description = document.getElementById('loanDescription').value;
+                const loanType = document.querySelector('.loan-type-btn.active').getAttribute('data-type');
+                
+                if (amount && person && date) {
+                    const loan = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount: loanType === 'taken' ? amount : -amount,
+                        person,
+                        date,
+                        description,
+                        paid: false, // Default to not paid
+                        type: loanType,
+                        transactionType: 'loan'
+                    };
                     
-                    const amount = parseFloat(document.getElementById('loanAmount').value);
-                    const person = document.getElementById('loanPerson').value;
-                    const date = document.getElementById('loanDate').value;
-                    const description = document.getElementById('loanDescription').value;
-                    const loanType = document.querySelector('.loan-type-btn.active').getAttribute('data-type');
+                    loans.push(loan);
+                    localStorage.setItem('loans', JSON.stringify(loans));
                     
-                    if (amount && person && date) {
-                        const loan = {
-                            id: Date.now(),
-                            userId: currentUser.email,
-                            amount: loanType === 'taken' ? amount : -amount,
-                            person,
-                            date,
-                            description,
-                            paid: false, // Default to not paid
-                            type: loanType,
-                            transactionType: 'loan'
-                        };
-                        
-                        loans.push(loan);
-                        localStorage.setItem('loans', JSON.stringify(loans));
-                        
-                        alert(`${loanType === 'taken' ? 'Loan taken' : 'Loan given'} of $${amount} has been saved!`);
-                        loanForm.reset();
-                        document.getElementById('loanDate').value = formattedToday;
-                        
-                        displayLoans();
-                        updateDashboard();
-                    }
-                });
-            }
+                    alert(`${loanType === 'taken' ? 'Loan taken' : 'Loan given'} of $${amount} has been saved!`);
+                    loanForm.reset();
+                    document.getElementById('loanDate').value = formattedToday;
+                    loanForm.style.display = 'none';
+                    addLoanBtn.style.display = 'block';
+                    
+                    displayLoans();
+                    updateDashboard();
+                }
+            });
             
             // Export data
             exportBtn.addEventListener('click', function() {
@@ -1558,6 +1708,18 @@
                 // Hide all modules
                 const modules = document.querySelectorAll('.module');
                 modules.forEach(m => m.style.display = 'none');
+                
+                // Hide all forms
+                expenseForm.style.display = 'none';
+                incomeForm.style.display = 'none';
+                savingsForm.style.display = 'none';
+                loanForm.style.display = 'none';
+                
+                // Show add buttons
+                addExpenseBtn.style.display = 'block';
+                addIncomeBtn.style.display = 'block';
+                addSavingsBtn.style.display = 'block';
+                addLoanBtn.style.display = 'block';
                 
                 // Show the selected module
                 const selectedModule = document.getElementById(moduleName + 'Module');
@@ -1717,7 +1879,17 @@
                 
                 loansList.innerHTML = '';
                 
-                const userLoans = loans.filter(l => l.userId === currentUser.email);
+                const loanType = document.querySelector('.loan-type-btn.active').getAttribute('data-type');
+                const statusFilter = document.getElementById('loanStatusFilter').value;
+                
+                let userLoans = loans.filter(l => l.userId === currentUser.email && l.type === loanType);
+                
+                // Apply status filter
+                if (statusFilter !== 'all') {
+                    userLoans = userLoans.filter(loan => {
+                        return statusFilter === 'paid' ? loan.paid : !loan.paid;
+                    });
+                }
                 
                 if (userLoans.length === 0) {
                     loansList.innerHTML = '<p>No loans recorded yet.</p>';
@@ -1729,12 +1901,12 @@
                     const isGiven = loan.amount < 0;
                     
                     const loanElement = document.createElement('div');
-                    loanElement.className = 'transaction-item';
+                    loanElement.className = `transaction-item ${loan.paid ? 'paid-loan' : ''}`;
                     loanElement.innerHTML = `
                         <div class="transaction-details">
                             <div class="transaction-title">${isGiven ? 'Given to' : 'Taken from'} ${loan.person}</div>
                             <div class="transaction-meta">
-                                <span>${loanDate</span>
+                                <span>${loanDate}</span>
                                 <span>${loan.description || 'No description'}</span>
                             </div>
                             <div class="loan-status">
@@ -1777,6 +1949,7 @@
                     
                     // Update dashboard to reflect changes
                     updateDashboard();
+                    displayLoans();
                 }
             }
             
@@ -1842,7 +2015,7 @@
                 document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
                 document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
                 document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
-                document.getElementById('totalBalance').textContent = `$${(totalIncome - totalExpenses + totalLoans).toFixed(2)}`;
+                document.getElementById('totalBalance').textContent = `$${(totalIncome - totalExpenses + totalSavings + totalLoans).toFixed(2)}`;
                 
                 // Update recent transactions
                 const recentTransactions = document.getElementById('recentTransactions');
@@ -2112,7 +2285,11 @@
                 
                 reader.readAsText(file);
             }
+            
+            // Add event listeners for filters
+            document.getElementById('loanStatusFilter').addEventListener('change', displayLoans);
+            document.getElementById('loanSort').addEventListener('change', displayLoans);
         });
     </script>
 </body>
-</html>
+    </html>
