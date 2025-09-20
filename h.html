@@ -39,7 +39,7 @@
             background-color: var(--background);
             color: var(--text);
             transition: all 0.3s ease;
-            padding-top: 80px;
+            padding-top: 80px; /* Account for fixed navbar */
             line-height: 1.6;
         }
 
@@ -135,6 +135,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            width: 100%;
         }
 
         .btn-primary {
@@ -147,9 +148,25 @@
             transform: translateY(-2px);
         }
 
-        .btn-block {
-            display: block;
-            width: 100%;
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 14px;
+            width: auto;
         }
 
         .auth-footer {
@@ -198,6 +215,7 @@
         .nav-links {
             display: flex;
             gap: 20px;
+            align-items: center;
         }
 
         .nav-links a {
@@ -468,6 +486,12 @@
             border-color: var(--primary);
         }
 
+        .add-item-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         /* Toggle Switch */
         .theme-switch {
             position: relative;
@@ -644,7 +668,7 @@
             }
             
             body {
-                padding-top: 120px;
+                padding-top: 120px; /* More space for fixed navbar on mobile */
             }
         }
 
@@ -686,23 +710,11 @@
             }
         }
 
-        .alert {
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 5px;
             display: none;
-        }
-
-        .alert-error {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-        }
-
-        .alert-success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
         }
     </style>
 </head>
@@ -715,23 +727,23 @@
                 <p>Track your expenses and manage your money</p>
             </div>
             <div class="auth-form" id="authForm">
-                <div class="alert alert-error" id="authAlert"></div>
-                
                 <!-- Login Form -->
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="loginEmail">Email</label>
                         <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
+                        <div class="error-message" id="loginEmailError"></div>
                     </div>
                     <div class="form-group">
                         <label for="loginPassword">Password</label>
                         <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                        <div class="error-message" id="loginPasswordError"></div>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" id="rememberMe">
                         <label for="rememberMe">Remember me</label>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    <button type="submit" class="btn btn-primary">Login</button>
                 </form>
                 
                 <!-- Signup Form -->
@@ -739,20 +751,24 @@
                     <div class="form-group">
                         <label for="signupName">Full Name</label>
                         <input type="text" id="signupName" class="form-control" placeholder="Enter your name" required>
+                        <div class="error-message" id="signupNameError"></div>
                     </div>
                     <div class="form-group">
                         <label for="signupEmail">Email</label>
                         <input type="email" id="signupEmail" class="form-control" placeholder="Enter your email" required>
+                        <div class="error-message" id="signupEmailError"></div>
                     </div>
                     <div class="form-group">
                         <label for="signupPassword">Password</label>
                         <input type="password" id="signupPassword" class="form-control" placeholder="Create a password" required>
+                        <div class="error-message" id="signupPasswordError"></div>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" id="termsAgree">
                         <label for="termsAgree">I agree to the terms and conditions</label>
+                        <div class="error-message" id="termsAgreeError"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
                 </form>
             </div>
             <div class="auth-footer">
@@ -888,6 +904,266 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Expenses Module -->
+                    <div class="module" id="expensesModule" style="display: none;">
+                        <div class="module-header">
+                            <h2 class="module-title">Expenses</h2>
+                            <button class="btn btn-primary" id="addExpenseBtn">Add Expense</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <select class="filter-select" id="expenseCategoryFilter">
+                                <option value="all">All Categories</option>
+                                <!-- Categories will be added dynamically -->
+                            </select>
+                            
+                            <select class="filter-select" id="expenseSort">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="highest">Highest Amount</option>
+                                <option value="lowest">Lowest Amount</option>
+                                <option value="category">Category</option>
+                            </select>
+                        </div>
+                        
+                        <div class="module-content">
+                            <form id="expenseForm" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="expenseDate">Date</label>
+                                        <input type="date" id="expenseDate" class="form-control" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="expenseAmount">Amount</label>
+                                        <input type="number" id="expenseAmount" class="form-control" placeholder="Enter amount" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="expenseCategory">Category</label>
+                                        <div style="display: flex; gap: 10px;">
+                                            <select id="expenseCategory" class="form-control" required style="flex: 1;">
+                                                <option value="">Select Category</option>
+                                                <!-- Categories will be added dynamically -->
+                                            </select>
+                                            <button type="button" class="btn btn-sm btn-primary" id="addCategoryBtn">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="expenseDescription">Description (Optional)</label>
+                                    <textarea id="expenseDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Expense</button>
+                                    <button type="button" class="btn btn-danger" id="cancelExpenseBtn">Cancel</button>
+                                </div>
+                            </form>
+                            
+                            <div class="transaction-list" id="expensesList">
+                                <!-- Expenses will be added dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Income Module -->
+                    <div class="module" id="incomeModule" style="display: none;">
+                        <div class="module-header">
+                            <h2 class="module-title">Income</h2>
+                            <button class="btn btn-primary" id="addIncomeBtn">Add Income</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <select class="filter-select" id="incomeCategoryFilter">
+                                <option value="all">All Categories</option>
+                                <!-- Income categories will be added dynamically -->
+                            </select>
+                            
+                            <select class="filter-select" id="incomeSort">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="highest">Highest Amount</option>
+                                <option value="lowest">Lowest Amount</option>
+                                <option value="category">Category</option>
+                            </select>
+                        </div>
+                        
+                        <div class="module-content">
+                            <form id="incomeForm" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="incomeDate">Date</label>
+                                        <input type="date" id="incomeDate" class="form-control" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="incomeAmount">Amount</label>
+                                        <input type="number" id="incomeAmount" class="form-control" placeholder="Enter amount" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="incomeCategory">Category</label>
+                                        <div style="display: flex; gap: 10px;">
+                                            <select id="incomeCategory" class="form-control" required style="flex: 1;">
+                                                <option value="">Select Category</option>
+                                                <!-- Income categories will be added dynamically -->
+                                            </select>
+                                            <button type="button" class="btn btn-sm btn-primary" id="addIncomeCategoryBtn">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="incomeDescription">Description (Optional)</label>
+                                    <textarea id="incomeDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Income</button>
+                                    <button type="button" class="btn btn-danger" id="cancelIncomeBtn">Cancel</button>
+                                </div>
+                            </form>
+                            
+                            <div class="transaction-list" id="incomeList">
+                                <!-- Income entries will be added dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Savings Module -->
+                    <div class="module" id="savingsModule" style="display: none;">
+                        <div class="module-header">
+                            <h2 class="module-title">Savings</h2>
+                            <button class="btn btn-primary" id="addSavingsBtn">Add Savings</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <select class="filter-select" id="savingsTypeFilter">
+                                <option value="all">All Types</option>
+                                <option value="add">Added to Savings</option>
+                                <option value="withdraw">Withdrawn from Savings</option>
+                            </select>
+                            
+                            <select class="filter-select" id="savingsSort">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="highest">Highest Amount</option>
+                                <option value="lowest">Lowest Amount</option>
+                            </select>
+                        </div>
+                        
+                        <div class="module-content">
+                            <form id="savingsForm" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="savingsDate">Date</label>
+                                        <input type="date" id="savingsDate" class="form-control" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="savingsAmount">Amount</label>
+                                        <input type="number" id="savingsAmount" class="form-control" placeholder="Enter amount" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="savingsType">Type</label>
+                                        <select id="savingsType" class="form-control" required>
+                                            <option value="">Select Type</option>
+                                            <option value="add">Add to Savings</option>
+                                            <option value="withdraw">Withdraw from Savings</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="savingsDescription">Description (Optional)</label>
+                                    <textarea id="savingsDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                    <button type="button" class="btn btn-danger" id="cancelSavingsBtn">Cancel</button>
+                                </div>
+                            </form>
+                            
+                            <div class="transaction-list" id="savingsList">
+                                <!-- Savings entries will be added dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Loans Module -->
+                    <div class="module" id="loansModule" style="display: none;">
+                        <div class="module-header">
+                            <h2 class="module-title">Loans</h2>
+                            <button class="btn btn-primary" id="addLoanBtn">Add Loan</button>
+                        </div>
+                        
+                        <div class="loan-type-toggle">
+                            <button class="loan-type-btn active" data-type="given">Given</button>
+                            <button class="loan-type-btn" data-type="taken">Taken</button>
+                        </div>
+                        
+                        <div class="filters">
+                            <select class="filter-select" id="loanStatusFilter">
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                            
+                            <select class="filter-select" id="loanSort">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="highest">Highest Amount</option>
+                                <option value="lowest">Lowest Amount</option>
+                                <option value="person">Person</option>
+                            </select>
+                        </div>
+                        
+                        <div class="module-content">
+                            <form id="loanForm" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="loanDate">Date</label>
+                                        <input type="date" id="loanDate" class="form-control" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="loanAmount">Amount</label>
+                                        <input type="number" id="loanAmount" class="form-control" placeholder="Enter amount" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="loanPerson">Person</label>
+                                        <div style="display: flex; gap: 10px;">
+                                            <select id="loanPerson" class="form-control" required style="flex: 1;">
+                                                <option value="">Select Person</option>
+                                                <!-- Persons will be added dynamically -->
+                                            </select>
+                                            <button type="button" class="btn btn-sm btn-primary" id="addPersonBtn">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="loanDescription">Description (Optional)</label>
+                                    <textarea id="loanDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Loan</button>
+                                    <button type="button" class="btn btn-danger" id="cancelLoanBtn">Cancel</button>
+                                </div>
+                            </form>
+                            
+                            <div class="transaction-list" id="loansList">
+                                <!-- Loans will be added dynamically -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -905,39 +1181,93 @@
             const authToggleLink = document.getElementById('authToggleLink');
             const logoutBtn = document.getElementById('logoutBtn');
             const userName = document.getElementById('userName');
-            const authAlert = document.getElementById('authAlert');
+            const themeToggle = document.getElementById('themeToggle');
+            const currentDate = document.getElementById('currentDate');
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileNavLinks = document.getElementById('mobileNavLinks');
+            const sidebar = document.getElementById('sidebar');
+            const exportBtn = document.getElementById('exportBtn');
+            const importBtn = document.getElementById('importBtn');
+            const importFile = document.getElementById('importFile');
+            
+            // Form buttons
+            const addExpenseBtn = document.getElementById('addExpenseBtn');
+            const addIncomeBtn = document.getElementById('addIncomeBtn');
+            const addSavingsBtn = document.getElementById('addSavingsBtn');
+            const addLoanBtn = document.getElementById('addLoanBtn');
+            
+            // Cancel buttons
+            const cancelExpenseBtn = document.getElementById('cancelExpenseBtn');
+            const cancelIncomeBtn = document.getElementById('cancelIncomeBtn');
+            const cancelSavingsBtn = document.getElementById('cancelSavingsBtn');
+            const cancelLoanBtn = document.getElementById('cancelLoanBtn');
+            
+            // Forms
+            const expenseForm = document.getElementById('expenseForm');
+            const incomeForm = document.getElementById('incomeForm');
+            const savingsForm = document.getElementById('savingsForm');
+            const loanForm = document.getElementById('loanForm');
+            
+            // Error message elements
+            const loginEmailError = document.getElementById('loginEmailError');
+            const loginPasswordError = document.getElementById('loginPasswordError');
+            const signupNameError = document.getElementById('signupNameError');
+            const signupEmailError = document.getElementById('signupEmailError');
+            const signupPasswordError = document.getElementById('signupPasswordError');
+            const termsAgreeError = document.getElementById('termsAgreeError');
             
             // Set current date
             const today = new Date();
-            document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US', { 
+            currentDate.textContent = today.toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
             });
             
+            // Format date for input fields
+            const yyyy = today.getFullYear();
+            let mm = today.getMonth() + 1;
+            let dd = today.getDate();
+            
+            if (dd < 10) dd = '0' + dd;
+            if (mm < 10) mm = '0' + mm;
+            
+            const formattedToday = `${yyyy}-${mm}-${dd}`;
+            
+            // Set today's date as default for all forms
+            document.getElementById('expenseDate').value = formattedToday;
+            document.getElementById('incomeDate').value = formattedToday;
+            document.getElementById('savingsDate').value = formattedToday;
+            document.getElementById('loanDate').value = formattedToday;
+            
             // Initialize data
             let currentUser = null;
             let users = JSON.parse(localStorage.getItem('users')) || [];
+            let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            let income = JSON.parse(localStorage.getItem('income')) || [];
+            let savings = JSON.parse(localStorage.getItem('savings')) || [];
+            let loans = JSON.parse(localStorage.getItem('loans')) || [];
+            let categories = JSON.parse(localStorage.getItem('categories')) || ['Food', 'Transport', 'Entertainment', 'Utilities', 'Other'];
+            let incomeCategories = JSON.parse(localStorage.getItem('incomeCategories')) || ['Salary', 'Freelance', 'Investment', 'Gift', 'Other'];
+            let persons = JSON.parse(localStorage.getItem('persons')) || [];
             
             // Check if user is logged in (from localStorage)
             const rememberedUser = localStorage.getItem('currentUser');
             if (rememberedUser) {
-                try {
-                    currentUser = JSON.parse(rememberedUser);
-                    // Verify user still exists in users array
-                    const userExists = users.some(u => u.email === currentUser.email);
-                    if (userExists) {
-                        showDashboard();
-                        userName.textContent = currentUser.name;
-                    } else {
-                        localStorage.removeItem('currentUser');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('currentUser');
-                    console.error('Error parsing user data:', e);
-                }
+                currentUser = JSON.parse(rememberedUser);
+                showDashboard();
+                userName.textContent = currentUser.name;
+                loadUserData();
+                updateDashboard();
+                updateCategoryDropdowns();
+                updatePersonDropdown();
             }
+            
+            // Mobile menu toggle
+            mobileMenuBtn.addEventListener('click', function() {
+                mobileNavLinks.style.display = mobileNavLinks.style.display === 'none' ? 'block' : 'none';
+            });
             
             // Auth toggle (Login/Signup)
             authToggleLink.addEventListener('click', function(e) {
@@ -955,38 +1285,59 @@
                 
                 // Re-attach event listener to the new link
                 document.getElementById('authToggleLink').addEventListener('click', arguments.callee);
-                
-                // Hide any previous alerts
-                hideAlert();
             });
             
             // Login form submission
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
+                // Reset error messages
+                loginEmailError.style.display = 'none';
+                loginPasswordError.style.display = 'none';
+                
                 const email = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
                 const rememberMe = document.getElementById('rememberMe').checked;
                 
                 // Simple validation
-                if (email && password) {
-                    const user = users.find(u => u.email === email && u.password === password);
+                let isValid = true;
+                
+                if (!email) {
+                    loginEmailError.textContent = 'Email is required';
+                    loginEmailError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!password) {
+                    loginPasswordError.textContent = 'Password is required';
+                    loginPasswordError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!isValid) return;
+                
+                // Find user
+                const user = users.find(u => u.email === email && u.password === password);
+                
+                if (user) {
+                    currentUser = user;
                     
-                    if (user) {
-                        currentUser = user;
-                        
-                        if (rememberMe) {
-                            localStorage.setItem('currentUser', JSON.stringify(user));
-                        }
-                        
-                        userName.textContent = user.name;
-                        showDashboard();
-                        hideAlert();
-                    } else {
-                        showAlert('Invalid email or password', 'error');
+                    if (rememberMe) {
+                        localStorage.setItem('currentUser', JSON.stringify(user));
                     }
+                    
+                    userName.textContent = user.name;
+                    showDashboard();
+                    loadUserData();
+                    updateDashboard();
+                    updateCategoryDropdowns();
+                    updatePersonDropdown();
+                    
+                    // Clear form
+                    loginForm.reset();
                 } else {
-                    showAlert('Please fill in all fields', 'error');
+                    loginPasswordError.textContent = 'Invalid email or password';
+                    loginPasswordError.style.display = 'block';
                 }
             });
             
@@ -994,42 +1345,88 @@
             signupForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
+                // Reset error messages
+                signupNameError.style.display = 'none';
+                signupEmailError.style.display = 'none';
+                signupPasswordError.style.display = 'none';
+                termsAgreeError.style.display = 'none';
+                
                 const name = document.getElementById('signupName').value;
                 const email = document.getElementById('signupEmail').value;
                 const password = document.getElementById('signupPassword').value;
                 const termsAgree = document.getElementById('termsAgree').checked;
                 
                 // Simple validation
-                if (name && email && password) {
-                    if (!termsAgree) {
-                        showAlert('You must agree to the terms and conditions', 'error');
-                        return;
-                    }
-                    
-                    // Check if user already exists
-                    if (users.some(u => u.email === email)) {
-                        showAlert('User with this email already exists', 'error');
-                        return;
-                    }
-                    
-                    const user = {
-                        name,
-                        email,
-                        password
-                    };
-                    
-                    users.push(user);
-                    localStorage.setItem('users', JSON.stringify(users));
-                    
-                    currentUser = user;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    userName.textContent = user.name;
-                    showDashboard();
-                    hideAlert();
-                } else {
-                    showAlert('Please fill in all fields', 'error');
+                let isValid = true;
+                
+                if (!name) {
+                    signupNameError.textContent = 'Name is required';
+                    signupNameError.style.display = 'block';
+                    isValid = false;
                 }
+                
+                if (!email) {
+                    signupEmailError.textContent = 'Email is required';
+                    signupEmailError.style.display = 'block';
+                    isValid = false;
+                } else if (!isValidEmail(email)) {
+                    signupEmailError.textContent = 'Please enter a valid email';
+                    signupEmailError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!password) {
+                    signupPasswordError.textContent = 'Password is required';
+                    signupPasswordError.style.display = 'block';
+                    isValid = false;
+                } else if (password.length < 6) {
+                    signupPasswordError.textContent = 'Password must be at least 6 characters';
+                    signupPasswordError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!termsAgree) {
+                    termsAgreeError.textContent = 'You must agree to the terms and conditions';
+                    termsAgreeError.style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!isValid) return;
+                
+                // Check if user already exists
+                if (users.some(u => u.email === email)) {
+                    signupEmailError.textContent = 'User with this email already exists';
+                    signupEmailError.style.display = 'block';
+                    return;
+                }
+                
+                const user = {
+                    name,
+                    email,
+                    password
+                };
+                
+                users.push(user);
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                userName.textContent = user.name;
+                showDashboard();
+                loadUserData();
+                updateDashboard();
+                updateCategoryDropdowns();
+                updatePersonDropdown();
+                
+                // Clear form
+                signupForm.reset();
             });
+            
+            // Email validation function
+            function isValidEmail(email) {
+                const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
+            }
             
             // Logout functionality
             logoutBtn.addEventListener('click', function() {
@@ -1038,45 +1435,844 @@
                 showAuth();
             });
             
-            // Show dashboard function
+            // Theme toggle
+            themeToggle.addEventListener('change', function() {
+                document.body.classList.toggle('dark-mode');
+            });
+            
+            // Module navigation
+            const navLinks = document.querySelectorAll('.nav-links a, .sidebar-menu a, .mobile-nav-links a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const module = this.getAttribute('data-module');
+                    
+                    // Update active states
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Hide mobile nav after selection
+                    mobileNavLinks.style.display = 'none';
+                    
+                    // Show the selected module
+                    showModule(module);
+                });
+            });
+            
+            // Loan type toggle
+            const loanTypeBtns = document.querySelectorAll('.loan-type-btn');
+            loanTypeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    loanTypeBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    displayLoans();
+                });
+            });
+            
+            // Add category button
+            document.getElementById('addCategoryBtn').addEventListener('click', function() {
+                const newCategory = prompt('Enter new category name:');
+                if (newCategory && !categories.includes(newCategory)) {
+                    categories.push(newCategory);
+                    localStorage.setItem('categories', JSON.stringify(categories));
+                    updateCategoryDropdowns();
+                    alert(`Category "${newCategory}" added successfully!`);
+                } else if (newCategory) {
+                    alert('Category already exists!');
+                }
+            });
+            
+            // Add income category button
+            document.getElementById('addIncomeCategoryBtn').addEventListener('click', function() {
+                const newCategory = prompt('Enter new income category name:');
+                if (newCategory && !incomeCategories.includes(newCategory)) {
+                    incomeCategories.push(newCategory);
+                    localStorage.setItem('incomeCategories', JSON.stringify(incomeCategories));
+                    updateCategoryDropdowns();
+                    alert(`Income category "${newCategory}" added successfully!`);
+                } else if (newCategory) {
+                    alert('Income category already exists!');
+                }
+            });
+            
+            // Add person button
+            document.getElementById('addPersonBtn').addEventListener('click', function() {
+                const newPerson = prompt('Enter new person name:');
+                if (newPerson && !persons.includes(newPerson)) {
+                    persons.push(newPerson);
+                    localStorage.setItem('persons', JSON.stringify(persons));
+                    updatePersonDropdown();
+                    alert(`Person "${newPerson}" added successfully!`);
+                } else if (newPerson) {
+                    alert('Person already exists!');
+                }
+            });
+            
+            // Show/hide forms
+            addExpenseBtn.addEventListener('click', function() {
+                expenseForm.style.display = 'block';
+                addExpenseBtn.style.display = 'none';
+            });
+            
+            cancelExpenseBtn.addEventListener('click', function() {
+                expenseForm.style.display = 'none';
+                addExpenseBtn.style.display = 'block';
+                expenseForm.reset();
+                document.getElementById('expenseDate').value = formattedToday;
+            });
+            
+            addIncomeBtn.addEventListener('click', function() {
+                incomeForm.style.display = 'block';
+                addIncomeBtn.style.display = 'none';
+            });
+            
+            cancelIncomeBtn.addEventListener('click', function() {
+                incomeForm.style.display = 'none';
+                addIncomeBtn.style.display = 'block';
+                incomeForm.reset();
+                document.getElementById('incomeDate').value = formattedToday;
+            });
+            
+            addSavingsBtn.addEventListener('click', function() {
+                savingsForm.style.display = 'block';
+                addSavingsBtn.style.display = 'none';
+            });
+            
+            cancelSavingsBtn.addEventListener('click', function() {
+                savingsForm.style.display = 'none';
+                addSavingsBtn.style.display = 'block';
+                savingsForm.reset();
+                document.getElementById('savingsDate').value = formattedToday;
+            });
+            
+            addLoanBtn.addEventListener('click', function() {
+                loanForm.style.display = 'block';
+                addLoanBtn.style.display = 'none';
+            });
+            
+            cancelLoanBtn.addEventListener('click', function() {
+                loanForm.style.display = 'none';
+                addLoanBtn.style.display = 'block';
+                loanForm.reset();
+                document.getElementById('loanDate').value = formattedToday;
+            });
+            
+            // Expense form submission
+            expenseForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('expenseAmount').value);
+                const category = document.getElementById('expenseCategory').value;
+                const date = document.getElementById('expenseDate').value;
+                const description = document.getElementById('expenseDescription').value;
+                
+                if (amount && category && date) {
+                    const expense = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount,
+                        category,
+                        date,
+                        description,
+                        type: 'expense'
+                    };
+                    
+                    expenses.push(expense);
+                    localStorage.setItem('expenses', JSON.stringify(expenses));
+                    
+                    alert(`Expense of $${amount} for ${category} has been saved!`);
+                    expenseForm.reset();
+                    document.getElementById('expenseDate').value = formattedToday;
+                    expenseForm.style.display = 'none';
+                    addExpenseBtn.style.display = 'block';
+                    displayExpenses();
+                    updateDashboard();
+                }
+            });
+            
+            // Income form submission
+            incomeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('incomeAmount').value);
+                const category = document.getElementById('incomeCategory').value;
+                const date = document.getElementById('incomeDate').value;
+                const description = document.getElementById('incomeDescription').value;
+                
+                if (amount && category && date) {
+                    const incomeEntry = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount,
+                        category,
+                        date,
+                        description,
+                        type: 'income'
+                    };
+                    
+                    income.push(incomeEntry);
+                    localStorage.setItem('income', JSON.stringify(income));
+                    
+                    alert(`Income of $${amount} from ${category} has been saved!`);
+                    incomeForm.reset();
+                    document.getElementById('incomeDate').value = formattedToday;
+                    incomeForm.style.display = 'none';
+                    addIncomeBtn.style.display = 'block';
+                    displayIncome();
+                    updateDashboard();
+                }
+            });
+            
+            // Savings form submission
+            savingsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('savingsAmount').value);
+                const type = document.getElementById('savingsType').value;
+                const date = document.getElementById('savingsDate').value;
+                const description = document.getElementById('savingsDescription').value;
+                
+                if (amount && type && date) {
+                    const savingsEntry = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount,
+                        type,
+                        date,
+                        description
+                    };
+                    
+                    savings.push(savingsEntry);
+                    localStorage.setItem('savings', JSON.stringify(savings));
+                    
+                    const action = type === 'add' ? 'added to' : 'withdrawn from';
+                    alert(`$${amount} has been ${action} your savings!`);
+                    savingsForm.reset();
+                    document.getElementById('savingsDate').value = formattedToday;
+                    savingsForm.style.display = 'none';
+                    addSavingsBtn.style.display = 'block';
+                    displaySavings();
+                    updateDashboard();
+                }
+            });
+            
+            // Loan form submission
+            loanForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const amount = parseFloat(document.getElementById('loanAmount').value);
+                const person = document.getElementById('loanPerson').value;
+                const date = document.getElementById('loanDate').value;
+                const description = document.getElementById('loanDescription').value;
+                const loanType = document.querySelector('.loan-type-btn.active').getAttribute('data-type');
+                
+                if (amount && person && date) {
+                    const loan = {
+                        id: Date.now(),
+                        userId: currentUser.email,
+                        amount,
+                        person,
+                        date,
+                        description,
+                        type: loanType,
+                        paid: false
+                    };
+                    
+                    loans.push(loan);
+                    localStorage.setItem('loans', JSON.stringify(loans));
+                    
+                    alert(`Loan of $${amount} ${loanType === 'given' ? 'given to' : 'taken from'} ${person} has been recorded!`);
+                    loanForm.reset();
+                    document.getElementById('loanDate').value = formattedToday;
+                    loanForm.style.display = 'none';
+                    addLoanBtn.style.display = 'block';
+                    displayLoans();
+                }
+            });
+            
+            // Export data
+            exportBtn.addEventListener('click', function() {
+                const userData = {
+                    expenses: expenses.filter(e => e.userId === currentUser.email),
+                    income: income.filter(i => i.userId === currentUser.email),
+                    savings: savings.filter(s => s.userId === currentUser.email),
+                    loans: loans.filter(l => l.userId === currentUser.email)
+                };
+                
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userData));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "fintrack_data.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                
+                alert('Your data has been exported successfully!');
+            });
+            
+            // Import data
+            importBtn.addEventListener('click', function() {
+                importFile.click();
+            });
+            
+            importFile.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            
+                            // Filter out any data that doesn't belong to current user
+                            const userExpenses = expenses.filter(e => e.userId !== currentUser.email);
+                            const userIncome = income.filter(i => i.userId !== currentUser.email);
+                            const userSavings = savings.filter(s => s.userId !== currentUser.email);
+                            const userLoans = loans.filter(l => l.userId !== currentUser.email);
+                            
+                            // Add imported data
+                            expenses = [...userExpenses, ...importedData.expenses];
+                            income = [...userIncome, ...importedData.income];
+                            savings = [...userSavings, ...importedData.savings];
+                            loans = [...userLoans, ...importedData.loans];
+                            
+                            // Save to localStorage
+                            localStorage.setItem('expenses', JSON.stringify(expenses));
+                            localStorage.setItem('income', JSON.stringify(income));
+                            localStorage.setItem('savings', JSON.stringify(savings));
+                            localStorage.setItem('loans', JSON.stringify(loans));
+                            
+                            // Update UI
+                            displayExpenses();
+                            displayIncome();
+                            displaySavings();
+                            displayLoans();
+                            updateDashboard();
+                            
+                            alert('Data imported successfully!');
+                        } catch (error) {
+                            alert('Error importing data. Please make sure you selected a valid export file.');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            // Helper functions
+            function showAuth() {
+                authContainer.style.display = 'flex';
+                dashboard.style.display = 'none';
+            }
+            
             function showDashboard() {
                 authContainer.style.display = 'none';
                 dashboard.style.display = 'block';
             }
             
-            // Show auth function
-            function showAuth() {
-                authContainer.style.display = 'flex';
-                dashboard.style.display = 'none';
+            function loadUserData() {
+                // Filter data for current user only
+                expenses = expenses.filter(e => e.userId === currentUser.email);
+                income = income.filter(i => i.userId === currentUser.email);
+                savings = savings.filter(s => s.userId === currentUser.email);
+                loans = loans.filter(l => l.userId === currentUser.email);
                 
-                // Reset forms
-                loginForm.reset();
-                signupForm.reset();
-                hideAlert();
+                // Save filtered data back to localStorage
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                localStorage.setItem('income', JSON.stringify(income));
+                localStorage.setItem('savings', JSON.stringify(savings));
+                localStorage.setItem('loans', JSON.stringify(loans));
             }
             
-            // Show alert function
-            function showAlert(message, type) {
-                authAlert.textContent = message;
-                authAlert.className = `alert alert-${type}`;
-                authAlert.style.display = 'block';
-            }
-            
-            // Hide alert function
-            function hideAlert() {
-                authAlert.style.display = 'none';
-            }
-            
-            // Initialize the app with sample data if no users exist
-            if (users.length === 0) {
-                // Add a sample user for testing
-                users.push({
-                    name: 'Demo User',
-                    email: 'demo@example.com',
-                    password: 'password123'
+            function showModule(module) {
+                // Hide all modules
+                document.querySelectorAll('.module').forEach(m => {
+                    m.style.display = 'none';
                 });
-                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Show selected module
+                document.getElementById(`${module}Module`).style.display = 'block';
+                
+                // Load module-specific data
+                switch(module) {
+                    case 'expenses':
+                        displayExpenses();
+                        break;
+                    case 'income':
+                        displayIncome();
+                        break;
+                    case 'savings':
+                        displaySavings();
+                        break;
+                    case 'loans':
+                        displayLoans();
+                        break;
+                    case 'dashboard':
+                        updateDashboard();
+                        break;
+                }
             }
+            
+            function updateDashboard() {
+                // Calculate totals
+                const totalIncome = income
+                    .filter(i => i.userId === currentUser.email)
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const totalExpenses = expenses
+                    .filter(e => e.userId === currentUser.email)
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const savingsAdd = savings
+                    .filter(s => s.userId === currentUser.email && s.type === 'add')
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const savingsWithdraw = savings
+                    .filter(s => s.userId === currentUser.email && s.type === 'withdraw')
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const totalSavings = savingsAdd - savingsWithdraw;
+                const totalBalance = totalIncome - totalExpenses;
+                
+                // Update dashboard values
+                document.getElementById('totalBalance').textContent = `$${totalBalance.toFixed(2)}`;
+                document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+                document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
+                document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
+                
+                // Display recent transactions
+                displayRecentTransactions();
+            }
+            
+            function displayRecentTransactions() {
+                const container = document.getElementById('recentTransactions');
+                container.innerHTML = '';
+                
+                // Get all transactions
+                const allTransactions = [
+                    ...expenses.filter(e => e.userId === currentUser.email).map(e => ({ ...e, type: 'expense' })),
+                    ...income.filter(i => i.userId === currentUser.email).map(i => ({ ...i, type: 'income' })),
+                    ...savings.filter(s => s.userId === currentUser.email).map(s => ({ ...s, type: 'savings' })),
+                    ...loans.filter(l => l.userId === currentUser.email).map(l => ({ ...l, type: 'loan' }))
+                ];
+                
+                // Sort by date (newest first)
+                allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Show only the 5 most recent
+                const recent = allTransactions.slice(0, 5);
+                
+                if (recent.length === 0) {
+                    container.innerHTML = '<p>No recent transactions</p>';
+                    return;
+                }
+                
+                recent.forEach(transaction => {
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
+                    
+                    let title = '';
+                    let amountClass = '';
+                    let amountPrefix = '';
+                    
+                    if (transaction.type === 'expense') {
+                        title = `Expense: ${transaction.category}`;
+                        amountClass = 'expense-amount';
+                        amountPrefix = '-';
+                    } else if (transaction.type === 'income') {
+                        title = `Income: ${transaction.category}`;
+                        amountClass = 'income-amount';
+                        amountPrefix = '+';
+                    } else if (transaction.type === 'savings') {
+                        title = `Savings: ${transaction.type === 'add' ? 'Added' : 'Withdrawn'}`;
+                        amountClass = transaction.type === 'add' ? 'income-amount' : 'expense-amount';
+                        amountPrefix = transaction.type === 'add' ? '+' : '-';
+                    } else if (transaction.type === 'loan') {
+                        title = `Loan ${transaction.type}: ${transaction.person}`;
+                        amountClass = transaction.type === 'given' ? 'expense-amount' : 'income-amount';
+                        amountPrefix = transaction.type === 'given' ? '-' : '+';
+                    }
+                    
+                    const date = new Date(transaction.date).toLocaleDateString();
+                    
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-title">${title}</div>
+                            <div class="transaction-meta">
+                                <span>${date}</span>
+                                ${transaction.description ? `<span>${transaction.description}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="transaction-amount ${amountClass}">
+                            ${amountPrefix}$${transaction.amount.toFixed(2)}
+                        </div>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+            }
+            
+            function displayExpenses() {
+                const container = document.getElementById('expensesList');
+                container.innerHTML = '';
+                
+                const categoryFilter = document.getElementById('expenseCategoryFilter').value;
+                const sortBy = document.getElementById('expenseSort').value;
+                
+                let userExpenses = expenses.filter(e => e.userId === currentUser.email);
+                
+                // Apply category filter
+                if (categoryFilter !== 'all') {
+                    userExpenses = userExpenses.filter(e => e.category === categoryFilter);
+                }
+                
+                // Apply sorting
+                switch(sortBy) {
+                    case 'newest':
+                        userExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userExpenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userExpenses.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userExpenses.sort((a, b) => a.amount - b.amount);
+                        break;
+                    case 'category':
+                        userExpenses.sort((a, b) => a.category.localeCompare(b.category));
+                        break;
+                }
+                
+                if (userExpenses.length === 0) {
+                    container.innerHTML = '<p>No expenses recorded yet</p>';
+                    return;
+                }
+                
+                userExpenses.forEach(expense => {
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
+                    
+                    const date = new Date(expense.date).toLocaleDateString();
+                    
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-title">${expense.category}</div>
+                            <div class="transaction-meta">
+                                <span>${date}</span>
+                                ${expense.description ? `<span>${expense.description}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="transaction-amount expense-amount">
+                            -$${expense.amount.toFixed(2)}
+                        </div>
+                        <button class="delete-btn" data-id="${expense.id}" data-type="expense">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+                
+                // Add event listeners to delete buttons
+                document.querySelectorAll('.delete-btn[data-type="expense"]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        if (confirm('Are you sure you want to delete this expense?')) {
+                            expenses = expenses.filter(e => e.id !== id);
+                            localStorage.setItem('expenses', JSON.stringify(expenses));
+                            displayExpenses();
+                            updateDashboard();
+                        }
+                    });
+                });
+            }
+            
+            function displayIncome() {
+                // Similar implementation to displayExpenses but for income
+                const container = document.getElementById('incomeList');
+                container.innerHTML = '';
+                
+                const categoryFilter = document.getElementById('incomeCategoryFilter').value;
+                const sortBy = document.getElementById('incomeSort').value;
+                
+                let userIncome = income.filter(i => i.userId === currentUser.email);
+                
+                if (categoryFilter !== 'all') {
+                    userIncome = userIncome.filter(i => i.category === categoryFilter);
+                }
+                
+                switch(sortBy) {
+                    case 'newest':
+                        userIncome.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userIncome.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userIncome.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userIncome.sort((a, b) => a.amount - b.amount);
+                        break;
+                    case 'category':
+                        userIncome.sort((a, b) => a.category.localeCompare(b.category));
+                        break;
+                }
+                
+                if (userIncome.length === 0) {
+                    container.innerHTML = '<p>No income recorded yet</p>';
+                    return;
+                }
+                
+                userIncome.forEach(incomeEntry => {
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
+                    
+                    const date = new Date(incomeEntry.date).toLocaleDateString();
+                    
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-title">${incomeEntry.category}</div>
+                            <div class="transaction-meta">
+                                <span>${date}</span>
+                                ${incomeEntry.description ? `<span>${incomeEntry.description}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="transaction-amount income-amount">
+                            +$${incomeEntry.amount.toFixed(2)}
+                        </div>
+                        <button class="delete-btn" data-id="${incomeEntry.id}" data-type="income">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+                
+                document.querySelectorAll('.delete-btn[data-type="income"]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        if (confirm('Are you sure you want to delete this income entry?')) {
+                            income = income.filter(i => i.id !== id);
+                            localStorage.setItem('income', JSON.stringify(income));
+                            displayIncome();
+                            updateDashboard();
+                        }
+                    });
+                });
+            }
+            
+            function displaySavings() {
+                // Similar implementation for savings
+                const container = document.getElementById('savingsList');
+                container.innerHTML = '';
+                
+                const typeFilter = document.getElementById('savingsTypeFilter').value;
+                const sortBy = document.getElementById('savingsSort').value;
+                
+                let userSavings = savings.filter(s => s.userId === currentUser.email);
+                
+                if (typeFilter !== 'all') {
+                    userSavings = userSavings.filter(s => s.type === typeFilter);
+                }
+                
+                switch(sortBy) {
+                    case 'newest':
+                        userSavings.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userSavings.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userSavings.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userSavings.sort((a, b) => a.amount - b.amount);
+                        break;
+                }
+                
+                if (userSavings.length === 0) {
+                    container.innerHTML = '<p>No savings transactions yet</p>';
+                    return;
+                }
+                
+                userSavings.forEach(savingsEntry => {
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
+                    
+                    const date = new Date(savingsEntry.date).toLocaleDateString();
+                    const isAdd = savingsEntry.type === 'add';
+                    
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-title">Savings: ${isAdd ? 'Added' : 'Withdrawn'}</div>
+                            <div class="transaction-meta">
+                                <span>${date}</span>
+                                ${savingsEntry.description ? `<span>${savingsEntry.description}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="transaction-amount ${isAdd ? 'income-amount' : 'expense-amount'}">
+                            ${isAdd ? '+' : '-'}$${savingsEntry.amount.toFixed(2)}
+                        </div>
+                        <button class="delete-btn" data-id="${savingsEntry.id}" data-type="savings">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+                
+                document.querySelectorAll('.delete-btn[data-type="savings"]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        if (confirm('Are you sure you want to delete this savings transaction?')) {
+                            savings = savings.filter(s => s.id !== id);
+                            localStorage.setItem('savings', JSON.stringify(savings));
+                            displaySavings();
+                            updateDashboard();
+                        }
+                    });
+                });
+            }
+            
+            function displayLoans() {
+                // Similar implementation for loans
+                const container = document.getElementById('loansList');
+                container.innerHTML = '';
+                
+                const statusFilter = document.getElementById('loanStatusFilter').value;
+                const sortBy = document.getElementById('loanSort').value;
+                const loanType = document.querySelector('.loan-type-btn.active').getAttribute('data-type');
+                
+                let userLoans = loans.filter(l => l.userId === currentUser.email && l.type === loanType);
+                
+                if (statusFilter !== 'all') {
+                    const filterPaid = statusFilter === 'paid';
+                    userLoans = userLoans.filter(l => l.paid === filterPaid);
+                }
+                
+                switch(sortBy) {
+                    case 'newest':
+                        userLoans.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userLoans.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userLoans.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userLoans.sort((a, b) => a.amount - b.amount);
+                        break;
+                    case 'person':
+                        userLoans.sort((a, b) => a.person.localeCompare(b.person));
+                        break;
+                }
+                
+                if (userLoans.length === 0) {
+                    container.innerHTML = '<p>No loans recorded yet</p>';
+                    return;
+                }
+                
+                userLoans.forEach(loan => {
+                    const item = document.createElement('div');
+                    item.className = `transaction-item ${loan.paid ? 'paid-loan' : ''}`;
+                    
+                    const date = new Date(loan.date).toLocaleDateString();
+                    const isGiven = loan.type === 'given';
+                    
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-title">${isGiven ? 'Given to' : 'Taken from'}: ${loan.person}</div>
+                            <div class="transaction-meta">
+                                <span>${date}</span>
+                                ${loan.description ? `<span>${loan.description}</span>` : ''}
+                            </div>
+                            <div class="loan-status">
+                                <input type="checkbox" id="loan-${loan.id}" ${loan.paid ? 'checked' : ''} class="status-checkbox">
+                                <label for="loan-${loan.id}" class="status-label">Paid</label>
+                            </div>
+                        </div>
+                        <div class="transaction-amount ${isGiven ? 'expense-amount' : 'income-amount'}">
+                            ${isGiven ? '-' : '+'}$${loan.amount.toFixed(2)}
+                        </div>
+                        <button class="delete-btn" data-id="${loan.id}" data-type="loan">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    
+                    container.appendChild(item);
+                    
+                    // Add event listener to the checkbox
+                    const checkbox = document.getElementById(`loan-${loan.id}`);
+                    checkbox.addEventListener('change', function() {
+                        loan.paid = this.checked;
+                        localStorage.setItem('loans', JSON.stringify(loans));
+                        displayLoans();
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn[data-type="loan"]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = parseInt(this.getAttribute('data-id'));
+                        if (confirm('Are you sure you want to delete this loan record?')) {
+                            loans = loans.filter(l => l.id !== id);
+                            localStorage.setItem('loans', JSON.stringify(loans));
+                            displayLoans();
+                        }
+                    });
+                });
+            }
+            
+            function updateCategoryDropdowns() {
+                // Update expense category dropdown
+                const expenseCategory = document.getElementById('expenseCategory');
+                const expenseCategoryFilter = document.getElementById('expenseCategoryFilter');
+                
+                expenseCategory.innerHTML = '<option value="">Select Category</option>';
+                expenseCategoryFilter.innerHTML = '<option value="all">All Categories</option>';
+                
+                categories.forEach(category => {
+                    expenseCategory.innerHTML += `<option value="${category}">${category}</option>`;
+                    expenseCategoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+                });
+                
+                // Update income category dropdown
+                const incomeCategory = document.getElementById('incomeCategory');
+                const incomeCategoryFilter = document.getElementById('incomeCategoryFilter');
+                
+                incomeCategory.innerHTML = '<option value="">Select Category</option>';
+                incomeCategoryFilter.innerHTML = '<option value="all">All Categories</option>';
+                
+                incomeCategories.forEach(category => {
+                    incomeCategory.innerHTML += `<option value="${category}">${category}</option>`;
+                    incomeCategoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+                });
+            }
+            
+            function updatePersonDropdown() {
+                const loanPerson = document.getElementById('loanPerson');
+                loanPerson.innerHTML = '<option value="">Select Person</option>';
+                
+                persons.forEach(person => {
+                    loanPerson.innerHTML += `<option value="${person}">${person}</option>`;
+                });
+            }
+            
+            // Initialize dropdowns and displays
+            updateCategoryDropdowns();
+            updatePersonDropdown();
+            
+            // Add event listeners to filter dropdowns
+            document.getElementById('expenseCategoryFilter').addEventListener('change', displayExpenses);
+            document.getElementById('expenseSort').addEventListener('change', displayExpenses);
+            document.getElementById('incomeCategoryFilter').addEventListener('change', displayIncome);
+            document.getElementById('incomeSort').addEventListener('change', displayIncome);
+            document.getElementById('savingsTypeFilter').addEventListener('change', displaySavings);
+            document.getElementById('savingsSort').addEventListener('change', displaySavings);
+            document.getElementById('loanStatusFilter').addEventListener('change', displayLoans);
+            document.getElementById('loanSort').addEventListener('change', displayLoans);
         });
     </script>
 </body>
