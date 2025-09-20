@@ -268,7 +268,7 @@
             background-color: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 5px極端15px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             height: fit-content;
         }
 
@@ -465,10 +465,10 @@
         }
 
         .filter-select {
-            padding: 8px極端15px;
+            padding: 8px 15px;
             border: 1px solid var(--border);
             border-radius: 8px;
-            background-color: var(--card極端bg);
+            background-color: var(--card-bg);
             color: var(--text);
         }
 
@@ -482,7 +482,7 @@
             padding: 10px 20px;
             border: 1px solid var(--border);
             border-radius: 8px;
-極端           background-color: var(--card-bg);
+            background-color: var(--card-bg);
             color: var(--text);
             cursor: pointer;
             transition: all 0.3s;
@@ -497,7 +497,7 @@
         .add-item-form {
             display: flex;
             gap: 10px;
-            margin-top: 10極端px;
+            margin-top: 10px;
         }
 
         /* Toggle Switch */
@@ -538,7 +538,7 @@
             border-radius: 50%;
         }
 
-        input:checked + .極端slider {
+        input:checked + .slider {
             background-color: var(--primary);
         }
 
@@ -572,7 +572,7 @@
             transition: opacity 0.3s;
         }
 
-       極端.delete-btn:hover {
+        .delete-btn:hover {
             opacity: 1;
         }
 
@@ -658,7 +658,7 @@
             }
             
             .form-row {
-                grid-template-columns: 1極端fr;
+                grid-template-columns: 1fr;
             }
             
             .nav-container {
@@ -768,7 +768,7 @@
                         <div class="error-message" id="loginEmailError"></div>
                     </div>
                     <div class="form-group">
-                        <label for極端="loginPassword">Password</label>
+                        <label for="loginPassword">Password</label>
                         <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
                         <div class="error-message" id="loginPasswordError"></div>
                     </div>
@@ -784,14 +784,14 @@
                     <div class="form-group">
                         <label for="signupName">Full Name</label>
                         <input type="text" id="signupName" class="form-control" placeholder="Enter your name" required>
-                        <div class="error-message"極端 id="signupNameError"></div>
+                        <div class="error-message" id="signupNameError"></div>
                     </div>
                     <div class="form-group">
                         <label for="signupEmail">Email</label>
-                        <input type="email" id="signupEmail" class="form-control" placeholder極端="Enter your email" required>
+                        <input type="email" id="signupEmail" class="form-control" placeholder="Enter your email" required>
                         <div class="error-message" id="signupEmailError"></div>
                     </div>
-                    <div極端 class="form-group">
+                    <div class="form-group">
                         <label for="signupPassword">Password</label>
                         <input type="password" id="signupPassword" class="form-control" placeholder="Create a password" required>
                         <div class="error-message" id="signupPasswordError"></div>
@@ -823,7 +823,7 @@
                 </div>
                 <div class="nav-links">
                     <a href="#" class="active" data-module="dashboard">Dashboard</a>
-                    <a href="#" data-module="expenses">Expenses極端</a>
+                    <a href="#" data-module="expenses">Expenses</a>
                     <a href="#" data-module="income">Income</a>
                     <a href="#" data-module="savings">Savings</a>
                     <a href="#" data-module="loans">Loans</a>
@@ -843,8 +843,8 @@
                     <a href="#" class="active" data-module="dashboard">Dashboard</a>
                     <a href="#" data-module="expenses">Expenses</a>
                     <a href="#" data-module="income">Income</a>
-                   極端<a href="#" data極端-module="savings">Savings</a>
-                    <a href="#" data-module="極端loans">Loans</a>
+                    <a href="#" data-module="savings">Savings</a>
+                    <a href="#" data-module="loans">Loans</a>
                 </div>
             </div>
         </nav>
@@ -856,7 +856,7 @@
                     <ul class="sidebar-menu">
                         <li><a href="#" class="active" data-module="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
                         <li><a href="#" data-module="expenses"><i class="fas fa-money-bill-wave"></i> Expenses</a></li>
-                        <li><a href="#" data-module="income"><極端i class="fas fa-dollar-sign"></i> Income</a></li>
+                        <li><a href="#" data-module="income"><i class="fas fa-dollar-sign"></i> Income</a></li>
                         <li><a href="#" data-module="savings"><i class="fas fa-piggy-bank"></i> Savings</a></li>
                         <li><a href="#" data-module="loans"><i class="fas fa-hand-holding-usd"></i> Loans</a></li>
                         <li><a href="#" data-module="reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
@@ -889,7 +889,7 @@
                                         <i class="fas fa-wallet"></i>
                                     </div>
                                 </div>
-                                <div class="stat-value" id="netBalance">$5,250.75</div>
+                                <div class="stat-value" id="netBalance">₹5,250.75</div>
                                 <p class="stat-desc">Income + Loans Taken + Savings - Expenses - Loans Given</p>
                             </div>
                             
@@ -898,9 +898,9 @@
                                     <h3 class="stat-title">Current Money</h3>
                                     <div class="stat-icon current-money-icon">
                                         <i class="fas fa-money-bill"></i>
-                                   極端</div>
+                                    </div>
                                 </div>
-                                <div class="stat-value" id="currentMoney">$4,500.50</div>
+                                <div class="stat-value" id="currentMoney">₹4,500.50</div>
                                 <p class="stat-desc">Net Balance - Total Savings</p>
                             </div>
                             
@@ -911,7 +911,7 @@
                                         <i class="fas fa-dollar-sign"></i>
                                     </div>
                                 </div>
-                                <div class="stat-value" id="totalIncome">$7,800.00</div>
+                                <div class="stat-value" id="totalIncome">₹7,800.00</div>
                                 <p class="stat-desc">Total income</p>
                             </div>
                             
@@ -922,7 +922,7 @@
                                         <i class="fas fa-money-bill-wave"></i>
                                     </div>
                                 </div>
-                                <div class="stat-value" id="totalExpenses">$2,549.25</div>
+                                <div class="stat-value" id="totalExpenses">₹2,549.25</div>
                                 <p class="stat-desc">Total expenses</p>
                             </div>
                             
@@ -933,7 +933,7 @@
                                         <i class="fas fa-piggy-bank"></i>
                                     </div>
                                 </div>
-                                <div class="stat-value" id="totalSavings">$3,500.00</div>
+                                <div class="stat-value" id="totalSavings">₹3,500.00</div>
                                 <p class="stat-desc">Total saved</p>
                             </div>
 
@@ -941,11 +941,11 @@
                                 <div class="stat-header">
                                     <h3 class="stat-title">Loans Given</h3>
                                     <div class="stat-icon loan-icon">
-                                        <i class="fas fa-hand-holding-us極端d"></i>
+                                        <i class="fas fa-hand-holding-usd"></i>
                                     </div>
                                 </div>
-                                <div class="stat-value" id="totalLoansGiven">$1,200.00</div>
-                                <p class極端="stat-desc">Total loans given</p>
+                                <div class="stat-value" id="totalLoansGiven">₹1,200.00</div>
+                                <p class="stat-desc">Total loans given</p>
                             </div>
 
                             <div class="stat-card">
@@ -955,7 +955,7 @@
                                         <i class="fas fa-hand-holding-usd"></i>
                                     </div>
                                 </div>
-                                <div class="stat-value" id="totalLoansTaken">$800.00</div>
+                                <div class="stat-value" id="totalLoansTaken">₹800.00</div>
                                 <p class="stat-desc">Total loans taken</p>
                             </div>
                         </div>
@@ -1020,7 +1020,7 @@
                                 
                                 <div class="form-group">
                                     <label for="expenseDescription">Description (Optional)</label>
-                                    <textarea id="極端expenseDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
+                                    <textarea id="expenseDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
                                 </div>
                                 
                                 <div class="form-actions">
@@ -1039,12 +1039,12 @@
                     <div class="module" id="incomeModule" style="display: none;">
                         <div class="module-header">
                             <h2 class="module-title">Income</h2>
-                            <button class="btn btn-primary極端" id="addIncomeBtn">Add Income</button>
+                            <button class="btn btn-primary" id="addIncomeBtn">Add Income</button>
                         </div>
                         
                         <div class="filters">
                             <select class="filter-select" id="incomeCategoryFilter">
-                                <option value極端="all">All Categories</option>
+                                <option value="all">All Categories</option>
                                 <!-- Income categories will be added dynamically -->
                             </select>
                             
@@ -1052,14 +1052,14 @@
                                 <option value="newest">Newest First</option>
                                 <option value="oldest">Oldest First</option>
                                 <option value="highest">Highest Amount</option>
-                                <option value="lowest">Lowest Amount極端</option>
+                                <option value="lowest">Lowest Amount</option>
                                 <option value="category">Category</option>
                             </select>
                         </div>
                         
                         <div class="module-content">
                             <form id="incomeForm" style="display: none;">
-                                <div class極端="form-row">
+                                <div class="form-row">
                                     <div class="form-group">
                                         <label for="incomeDate">Date</label>
                                         <input type="date" id="incomeDate" class="form-control" required>
@@ -1085,10 +1085,10 @@
                                 <div class="form-group">
                                     <label for="incomeDescription">Description (Optional)</label>
                                     <textarea id="incomeDescription" class="form-control" rows="3" placeholder="Add description"></textarea>
-                                </極端div>
+                                </div>
                                 
                                 <div class="form-actions">
-                                    <button type="submit" class極端="btn btn-primary">Save Income</button>
+                                    <button type="submit" class="btn btn-primary">Save Income</button>
                                     <button type="button" class="btn btn-danger" id="cancelIncomeBtn">Cancel</button>
                                 </div>
                             </form>
@@ -1162,8 +1162,8 @@
                     </div>
                     
                     <!-- Loans Module -->
-                    <div class="module" id="loansModule" style極端="display: none;">
-                        <div class="極端module-header">
+                    <div class="module" id="loansModule" style="display: none;">
+                        <div class="module-header">
                             <h2 class="module-title">Loans</h2>
                             <button class="btn btn-primary" id="addLoanBtn">Add Loan</button>
                         </div>
@@ -1181,7 +1181,7 @@
                             </select>
                             
                             <select class="filter-select" id="loanSort">
-                                <option value="new極端est">Newest First</option>
+                                <option value="newest">Newest First</option>
                                 <option value="oldest">Oldest First</option>
                                 <option value="highest">Highest Amount</option>
                                 <option value="lowest">Lowest Amount</option>
@@ -1200,9 +1200,9 @@
                                     <div class="form-group">
                                         <label for="loanAmount">Amount</label>
                                         <input type="number" id="loanAmount" class="form-control" placeholder="Enter amount" required>
-                                    </極端div>
+                                    </div>
                                     
-                                    <極端div class="form-group">
+                                    <div class="form-group">
                                         <label for="loanPerson">Person</label>
                                         <div style="display: flex; gap: 10px;">
                                             <select id="loanPerson" class="form-control" required style="flex: 1;">
@@ -1252,7 +1252,7 @@
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const mobileNavLinks = document.getElementById('mobileNavLinks');
             const sidebar = document.getElementById('sidebar');
-            const exportBtn = document.getElementById極端('exportBtn');
+            const exportBtn = document.getElementById('exportBtn');
             const importBtn = document.getElementById('importBtn');
             const importFile = document.getElementById('importFile');
             
@@ -1303,7 +1303,7 @@
             
             // Set today's date as default for all forms
             document.getElementById('expenseDate').value = formattedToday;
-            document.getElementById('incomeDate極端').value = formattedToday;
+            document.getElementById('incomeDate').value = formattedToday;
             document.getElementById('savingsDate').value = formattedToday;
             document.getElementById('loanDate').value = formattedToday;
             
@@ -1363,7 +1363,7 @@
                 
                 const email = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
-                const remember極端Me = document.getElementById('rememberMe').checked;
+                const rememberMe = document.getElementById('rememberMe').checked;
                 
                 // Simple validation
                 let isValid = true;
@@ -1380,7 +1380,7 @@
                     isValid = false;
                 }
                 
-                if (!is極端isValid) return;
+                if (!isValid) return;
                 
                 // Find user
                 const user = users.find(u => u.email === email && u.password === password);
@@ -1426,7 +1426,7 @@
                 let isValid = true;
                 
                 if (!name) {
-                    signupName極端Error.textContent = 'Name is required';
+                    signupNameError.textContent = 'Name is required';
                     signupNameError.style.display = 'block';
                     isValid = false;
                 }
@@ -1583,7 +1583,7 @@
             
             cancelExpenseBtn.addEventListener('click', function() {
                 expenseForm.style.display = 'none';
-                add極端ExpenseBtn.style.display = 'block';
+                addExpenseBtn.style.display = 'block';
                 expenseForm.reset();
                 document.getElementById('expenseDate').value = formattedToday;
             });
@@ -1593,7 +1593,7 @@
                 addIncomeBtn.style.display = 'none';
             });
             
-            cancelIncomeBtn.addEventListener('click',極端 function() {
+            cancelIncomeBtn.addEventListener('click', function() {
                 incomeForm.style.display = 'none';
                 addIncomeBtn.style.display = 'block';
                 incomeForm.reset();
@@ -1647,7 +1647,7 @@
                     expenses.push(expense);
                     localStorage.setItem('expenses', JSON.stringify(expenses));
                     
-                    alert(`Expense of $${amount} for ${category} has been saved!`);
+                    alert(`Expense of ₹${amount} for ${category} has been saved!`);
                     expenseForm.reset();
                     document.getElementById('expenseDate').value = formattedToday;
                     expenseForm.style.display = 'none';
@@ -1661,7 +1661,7 @@
             incomeForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                const amount = parseFloat(document.getElementById('incomeAmount').極端value);
+                const amount = parseFloat(document.getElementById('incomeAmount').value);
                 const category = document.getElementById('incomeCategory').value;
                 const date = document.getElementById('incomeDate').value;
                 const description = document.getElementById('incomeDescription').value;
@@ -1680,9 +1680,9 @@
                     income.push(incomeEntry);
                     localStorage.setItem('income', JSON.stringify(income));
                     
-                    alert(`Income of $${amount} from ${category} has been saved極端!`);
+                    alert(`Income of ₹${amount} from ${category} has been saved!`);
                     incomeForm.reset();
-                    document.getElementById('incomeDate').極端value = formattedToday;
+                    document.getElementById('incomeDate').value = formattedToday;
                     incomeForm.style.display = 'none';
                     addIncomeBtn.style.display = 'block';
                     displayIncome();
@@ -1713,7 +1713,7 @@
                     localStorage.setItem('savings', JSON.stringify(savings));
                     
                     if (type === 'add') {
-                        alert(`$${amount} has been added to your savings!`);
+                        alert(`₹${amount} has been added to your savings!`);
                     } else {
                         // Create an expense entry for savings withdrawal
                         const expense = {
@@ -1729,7 +1729,7 @@
                         expenses.push(expense);
                         localStorage.setItem('expenses', JSON.stringify(expenses));
                         
-                        alert(`$${amount} has been withdrawn from your savings!`);
+                        alert(`₹${amount} has been withdrawn from your savings!`);
                     }
                     
                     savingsForm.reset();
@@ -1766,7 +1766,7 @@
                     loans.push(loan);
                     localStorage.setItem('loans', JSON.stringify(loans));
                     
-                    alert(`Loan of $${amount} ${loanType === 'given' ? 'given to' : 'taken from'} ${person} has been recorded!`);
+                    alert(`Loan of ₹${amount} ${loanType === 'given' ? 'given to' : 'taken from'} ${person} has been recorded!`);
                     loanForm.reset();
                     document.getElementById('loanDate').value = formattedToday;
                     loanForm.style.display = 'none';
@@ -1778,7 +1778,7 @@
             
             // Export data
             exportBtn.addEventListener('click', function() {
-                const user極端Data = {
+                const userData = {
                     expenses: expenses.filter(e => e.userId === currentUser.email),
                     income: income.filter(i => i.userId === currentUser.email),
                     savings: savings.filter(s => s.userId === currentUser.email),
@@ -1813,7 +1813,7 @@
                             const userExpenses = expenses.filter(e => e.userId !== currentUser.email);
                             const userIncome = income.filter(i => i.userId !== currentUser.email);
                             const userSavings = savings.filter(s => s.userId !== currentUser.email);
-                           極端const userLoans = loans.filter(l => l.userId !== currentUser.email);
+                            const userLoans = loans.filter(l => l.userId !== currentUser.email);
                             
                             // Add imported data
                             expenses = [...userExpenses, ...importedData.expenses];
@@ -1825,7 +1825,7 @@
                             localStorage.setItem('expenses', JSON.stringify(expenses));
                             localStorage.setItem('income', JSON.stringify(income));
                             localStorage.setItem('savings', JSON.stringify(savings));
-                            localStorage.setItem('極端loans', JSON.stringify(loans));
+                            localStorage.setItem('loans', JSON.stringify(loans));
                             
                             // Update UI
                             displayExpenses();
@@ -1932,13 +1932,13 @@
                 const currentMoney = netBalance - totalSavings;
                 
                 // Update dashboard values
-                document.getElementById('netBalance').textContent = `$${netBalance.toFixed(2)}`;
-                document.getElementById('currentMoney').textContent = `$${currentMoney.toFixed(2)}`;
-                document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
-                document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
-                document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
-                document.getElementById('totalLoansGiven').textContent = `$${loansGiven.toFixed(2)}`;
-                document.getElementById('totalLoansTaken').textContent = `$${loansTaken.toFixed(2)}`;
+                document.getElementById('netBalance').textContent = `₹${netBalance.toFixed(2)}`;
+                document.getElementById('currentMoney').textContent = `₹${currentMoney.toFixed(2)}`;
+                document.getElementById('totalIncome').textContent = `₹${totalIncome.toFixed(2)}`;
+                document.getElementById('totalExpenses').textContent = `₹${totalExpenses.toFixed(2)}`;
+                document.getElementById('totalSavings').textContent = `₹${totalSavings.toFixed(2)}`;
+                document.getElementById('totalLoansGiven').textContent = `₹${loansGiven.toFixed(2)}`;
+                document.getElementById('totalLoansTaken').textContent = `₹${loansTaken.toFixed(2)}`;
                 
                 // Display recent transactions
                 displayRecentTransactions();
@@ -1960,7 +1960,7 @@
                 allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
                 
                 // Show only the 5 most recent
-                const recent = all極端Transactions.slice(0, 5);
+                const recent = allTransactions.slice(0, 5);
                 
                 if (recent.length === 0) {
                     container.innerHTML = '<p>No recent transactions</p>';
@@ -2004,7 +2004,7 @@
                             </div>
                         </div>
                         <div class="transaction-amount ${amountClass}">
-                            ${amountPrefix}$${transaction.amount.toFixed(2)}
+                            ${amountPrefix}₹${transaction.amount.toFixed(2)}
                         </div>
                     `;
                     
@@ -2019,7 +2019,7 @@
                 const categoryFilter = document.getElementById('expenseCategoryFilter').value;
                 const sortBy = document.getElementById('expenseSort').value;
                 
-                let userExpenses = expenses.filter(e => e.user極端Id === currentUser.email);
+                let userExpenses = expenses.filter(e => e.userId === currentUser.email);
                 
                 // Apply category filter
                 if (categoryFilter !== 'all') {
@@ -2029,7 +2029,7 @@
                 // Apply sorting
                 switch(sortBy) {
                     case 'newest':
-                        userExpenses.sort((a, b)極端 => new Date(b.date) - new Date(a.date));
+                        userExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
                         break;
                     case 'oldest':
                         userExpenses.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -2059,13 +2059,13 @@
                     item.innerHTML = `
                         <div class="transaction-details">
                             <div class="transaction-title">${expense.category}</div>
-                            <div class極端="transaction-meta">
+                            <div class="transaction-meta">
                                 <span>${date}</span>
                                 ${expense.description ? `<span>${expense.description}</span>` : ''}
                             </div>
                         </div>
                         <div class="transaction-amount expense-amount">
-                            -$${expense.amount極端.toFixed(2)}
+                            -₹${expense.amount.toFixed(2)}
                         </div>
                         <button class="delete-btn" data-id="${expense.id}" data-type="expense">
                             <i class="fas fa-trash"></i>
@@ -2095,7 +2095,7 @@
                 container.innerHTML = '';
                 
                 const categoryFilter = document.getElementById('incomeCategoryFilter').value;
-                const sort極端By = document.getElementById('incomeSort').value;
+                const sortBy = document.getElementById('incomeSort').value;
                 
                 let userIncome = income.filter(i => i.userId === currentUser.email);
                 
@@ -2108,12 +2108,12 @@
                         userIncome.sort((a, b) => new Date(b.date) - new Date(a.date));
                         break;
                     case 'oldest':
-                        userIncome.sort極端((a, b) => new Date(a.date) - new Date(b.date));
+                        userIncome.sort((a, b) => new Date(a.date) - new Date(b.date));
                         break;
                     case 'highest':
                         userIncome.sort((a, b) => b.amount - a.amount);
                         break;
-                   極端case 'lowest':
+                    case 'lowest':
                         userIncome.sort((a, b) => a.amount - b.amount);
                         break;
                     case 'category':
@@ -2122,7 +2122,7 @@
                 }
                 
                 if (userIncome.length === 0) {
-                    container.innerHTML = '<p極端>No income recorded yet</p>';
+                    container.innerHTML = '<p>No income recorded yet</p>';
                     return;
                 }
                 
@@ -2141,7 +2141,7 @@
                             </div>
                         </div>
                         <div class="transaction-amount income-amount">
-                            +$${incomeEntry.amount.toFixed(2)}
+                            +₹${incomeEntry.amount.toFixed(2)}
                         </div>
                         <button class="delete-btn" data-id="${incomeEntry.id}" data-type="income">
                             <i class="fas fa-trash"></i>
@@ -2151,9 +2151,9 @@
                     container.appendChild(item);
                 });
                 
-                document.querySelectorAll('.delete-btn[data-type="income"]').forEach(btn極端 => {
+                document.querySelectorAll('.delete-btn[data-type="income"]').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        const id = parseInt(this.getAttribute極端('data-id'));
+                        const id = parseInt(this.getAttribute('data-id'));
                         if (confirm('Are you sure you want to delete this income entry?')) {
                             income = income.filter(i => i.id !== id);
                             localStorage.setItem('income', JSON.stringify(income));
@@ -2202,7 +2202,7 @@
                     const item = document.createElement('div');
                     item.className = 'transaction-item';
                     
-                    const date = new Date(savingsEntry.date).toLocale極端DateString();
+                    const date = new Date(savingsEntry.date).toLocaleDateString();
                     const isAdd = savingsEntry.type === 'add';
                     
                     item.innerHTML = `
@@ -2214,10 +2214,10 @@
                             </div>
                         </div>
                         <div class="transaction-amount ${isAdd ? 'income-amount' : 'expense-amount'}">
-                            ${isAdd ? '+' : '-'}$${savingsEntry.amount.toFixed(2)}
+                            ${isAdd ? '+' : '-'}₹${savingsEntry.amount.toFixed(2)}
                         </div>
                         <button class="delete-btn" data-id="${savingsEntry.id}" data-type="savings">
-                            <極端i class="fas fa-trash"></i>
+                            <i class="fas fa-trash"></i>
                         </button>
                     `;
                     
@@ -2248,14 +2248,14 @@
                 
                 let userLoans = loans.filter(l => l.userId === currentUser.email && l.type === loanType);
                 
-                if (statusFilter !== '極端all') {
+                if (statusFilter !== 'all') {
                     const filterPaid = statusFilter === 'paid';
-                    userLoans = user極端Loans.filter(l => l.paid === filterPaid);
+                    userLoans = userLoans.filter(l => l.paid === filterPaid);
                 }
                 
                 switch(sortBy) {
                     case 'newest':
-                        userLoans極端.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        userLoans.sort((a, b) => new Date(b.date) - new Date(a.date));
                         break;
                     case 'oldest':
                         userLoans.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -2272,7 +2272,7 @@
                 }
                 
                 if (userLoans.length === 0) {
-                    container.innerHTML = '<p>No loans recorded yet</p>';
+                    container.innerHTML = '<p>No loans recorded yet</p>;
                     return;
                 }
                 
@@ -2288,17 +2288,17 @@
                             <div class="transaction-title">${isGiven ? 'Given to' : 'Taken from'}: ${loan.person}</div>
                             <div class="transaction-meta">
                                 <span>${date}</span>
-                                ${loan.description ? `<span>極端${loan.description}</span>` : ''}
+                                ${loan.description ? `<span>${loan.description}</span>` : ''}
                             </div>
-                            <div class="loan-status">
+                            <div class極端="loan-status">
                                 <input type="checkbox" id="loan-${loan.id}" ${loan.paid ? 'checked' : ''} class="status-checkbox">
                                 <label for="loan-${loan.id}" class="status-label">Paid</label>
                             </div>
                         </div>
                         <div class="transaction-amount ${isGiven ? 'expense-amount' : 'income-amount'}">
-                            ${isGiven ? '-' : '+'}$${loan.amount.toFixed(2)}
+                            ${isGiven ? '-' : '+'}₹${loan.amount.toFixed(2)}
                         </div>
-                        <button class="delete-btn" data-id="${loan.id}" data-type極端="loan">
+                        <button class="delete-btn" data-id="${loan.id}" data-type="loan">
                             <i class="fas fa-trash"></i>
                         </button>
                     `;
@@ -2338,18 +2338,18 @@
                 
                 categories.forEach(category => {
                     expenseCategory.innerHTML += `<option value="${category}">${category}</option>`;
-                    expenseCategoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
+                    expenseCategoryFilter.innerHTML += `<option極端 value="${category}">${category}</option>`;
                 });
                 
                 // Update income category dropdown
-                const incomeCategory = document.getElementById('incomeCategory');
+                const incomeCategory = document.getElementById('極端incomeCategory');
                 const incomeCategoryFilter = document.getElementById('incomeCategoryFilter');
                 
                 incomeCategory.innerHTML = '<option value="">Select Category</option>';
-                incomeCategoryFilter.innerHTML = '<option value極端="all">All Categories</option>';
+                incomeCategoryFilter.innerHTML = '<option value="all">All Categories</option>';
                 
                 incomeCategories.forEach(category => {
-                    incomeCategory.innerHTML += `<option value="${category}">極端${category}</option>`;
+                    incomeCategory.innerHTML += `<option value="${category}">${category}</option>`;
                     incomeCategoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
                 });
             }
@@ -2369,10 +2369,10 @@
             
             // Add event listeners to filter dropdowns
             document.getElementById('expenseCategoryFilter').addEventListener('change', displayExpenses);
-            document.getElementById('expenseSort').addEventListener('change', display極端Expenses);
+            document.getElementById('expenseSort').addEventListener('change', displayExpenses);
             document.getElementById('incomeCategoryFilter').addEventListener('change', displayIncome);
             document.getElementById('incomeSort').addEventListener('change', displayIncome);
-            document.getElementById('savingsTypeFilter').addEventListener('change', displaySavings);
+            document.getElementById('savingsType極端Filter').addEventListener('change', displaySavings);
             document.getElementById('savingsSort').addEventListener('change', displaySavings);
             document.getElementById('loanStatusFilter').addEventListener('change', displayLoans);
             document.getElementById('loanSort').addEventListener('change', displayLoans);
