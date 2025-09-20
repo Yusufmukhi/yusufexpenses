@@ -361,6 +361,11 @@
             color: var(--primary);
         }
 
+        .current-money-icon {
+            background-color: rgba(73, 191, 107, 0.2);
+            color: #49bf6b;
+        }
+
         .stat-value {
             font-size: 24px;
             font-weight: 700;
@@ -421,6 +426,9 @@
 
         .transaction-details {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .transaction-title {
@@ -654,12 +662,12 @@
             }
             
             .nav-container {
-                flex-direction: column;
+                flex-direction: row;
                 gap: 15px;
             }
             
             .user-section {
-                margin-top: 15px;
+                margin-top: 0;
             }
             
             .nav-links {
@@ -669,6 +677,26 @@
             
             body {
                 padding-top: 120px; /* More space for fixed navbar on mobile */
+            }
+            
+            /* Mobile layout adjustments */
+            .navbar .container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .brand {
+                order: 2;
+                margin: 0 auto;
+            }
+            
+            .mobile-menu-btn {
+                order: 1;
+            }
+            
+            .user-section {
+                order: 3;
             }
         }
 
@@ -707,6 +735,11 @@
             
             .form-actions {
                 flex-direction: column;
+            }
+            
+            .user-section {
+                flex-direction: column;
+                gap: 10px;
             }
         }
 
@@ -858,6 +891,17 @@
                                 </div>
                                 <div class="stat-value" id="totalBalance">$5,250.75</div>
                                 <p class="stat-desc">Your current available balance</p>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <h3 class="stat-title">Current Money</h3>
+                                    <div class="stat-icon current-money-icon">
+                                        <i class="fas fa-money-bill"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-value" id="currentMoney">$7,500.50</div>
+                                <p class="stat-desc">Income + Loans Taken - Expenses - Loans Given</p>
                             </div>
                             
                             <div class="stat-card">
@@ -1688,6 +1732,7 @@
                     loanForm.style.display = 'none';
                     addLoanBtn.style.display = 'block';
                     displayLoans();
+                    updateDashboard();
                 }
             });
             
@@ -1833,11 +1878,24 @@
                 const totalSavings = savingsAdd - savingsWithdraw;
                 const totalBalance = totalIncome - totalExpenses;
                 
+                // Calculate loans
+                const loansGiven = loans
+                    .filter(l => l.userId === currentUser.email && l.type === 'given')
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const loansTaken = loans
+                    .filter(l => l.userId === currentUser.email && l.type === 'taken')
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                // Calculate current money: Income + Loans Taken - Expenses - Loans Given
+                const currentMoney = totalIncome + loansTaken - totalExpenses - loansGiven;
+                
                 // Update dashboard values
                 document.getElementById('totalBalance').textContent = `$${totalBalance.toFixed(2)}`;
                 document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
                 document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
                 document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
+                document.getElementById('currentMoney').textContent = `$${currentMoney.toFixed(2)}`;
                 
                 // Display recent transactions
                 displayRecentTransactions();
@@ -2210,6 +2268,7 @@
                         loan.paid = this.checked;
                         localStorage.setItem('loans', JSON.stringify(loans));
                         displayLoans();
+                        updateDashboard();
                     });
                 });
                 
@@ -2220,6 +2279,7 @@
                             loans = loans.filter(l => l.id !== id);
                             localStorage.setItem('loans', JSON.stringify(loans));
                             displayLoans();
+                            updateDashboard();
                         }
                     });
                 });
@@ -2276,4 +2336,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
