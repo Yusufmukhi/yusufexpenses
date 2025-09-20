@@ -213,6 +213,7 @@
         .nav-links {
             display: flex;
             gap: 20px;
+            align-items: center;
         }
 
         .nav-links a {
@@ -1291,6 +1292,8 @@
                     } else {
                         alert('Invalid email or password');
                     }
+                } else {
+                    alert('Please fill in all fields');
                 }
             });
             
@@ -1301,9 +1304,15 @@
                 const name = document.getElementById('signupName').value;
                 const email = document.getElementById('signupEmail').value;
                 const password = document.getElementById('signupPassword').value;
+                const termsAgree = document.getElementById('termsAgree').checked;
                 
                 // Simple validation
                 if (name && email && password) {
+                    if (!termsAgree) {
+                        alert('You must agree to the terms and conditions');
+                        return;
+                    }
+                    
                     // Check if user already exists
                     if (users.some(u => u.email === email)) {
                         alert('User with this email already exists');
@@ -1327,6 +1336,8 @@
                     updateDashboard();
                     updateCategoryDropdowns();
                     updatePersonDropdown();
+                } else {
+                    alert('Please fill in all fields');
                 }
             });
             
@@ -1394,7 +1405,7 @@
                     updateCategoryDropdowns();
                     alert(`Income category "${newCategory}" added successfully!`);
                 } else if (newCategory) {
-                    alert('Income category already exists!`);
+                    alert('Income category already exists!');
                 }
             });
             
@@ -1488,7 +1499,6 @@
                     document.getElementById('expenseDate').value = formattedToday;
                     expenseForm.style.display = 'none';
                     addExpenseBtn.style.display = 'block';
-                    
                     displayExpenses();
                     updateDashboard();
                 }
@@ -1504,7 +1514,7 @@
                 const description = document.getElementById('incomeDescription').value;
                 
                 if (amount && category && date) {
-                    const incomeItem = {
+                    const incomeEntry = {
                         id: Date.now(),
                         userId: currentUser.email,
                         amount,
@@ -1514,7 +1524,7 @@
                         type: 'income'
                     };
                     
-                    income.push(incomeItem);
+                    income.push(incomeEntry);
                     localStorage.setItem('income', JSON.stringify(income));
                     
                     alert(`Income of $${amount} from ${category} has been saved!`);
@@ -1522,7 +1532,6 @@
                     document.getElementById('incomeDate').value = formattedToday;
                     incomeForm.style.display = 'none';
                     addIncomeBtn.style.display = 'block';
-                    
                     displayIncome();
                     updateDashboard();
                 }
@@ -1538,25 +1547,24 @@
                 const description = document.getElementById('savingsDescription').value;
                 
                 if (amount && type && date) {
-                    const savingsItem = {
+                    const savingsEntry = {
                         id: Date.now(),
                         userId: currentUser.email,
-                        amount: type === 'withdraw' ? -amount : amount,
-                        type: type,
+                        amount,
+                        type,
                         date,
-                        description,
-                        transactionType: 'savings'
+                        description
                     };
                     
-                    savings.push(savingsItem);
+                    savings.push(savingsEntry);
                     localStorage.setItem('savings', JSON.stringify(savings));
                     
-                    alert(`Savings ${type === 'add' ? 'addition' : 'withdrawal'} of $${amount} has been saved!`);
+                    const action = type === 'add' ? 'added to' : 'withdrawn from';
+                    alert(`$${amount} has been ${action} your savings!`);
                     savingsForm.reset();
                     document.getElementById('savingsDate').value = formattedToday;
                     savingsForm.style.display = 'none';
                     addSavingsBtn.style.display = 'block';
-                    
                     displaySavings();
                     updateDashboard();
                 }
@@ -1576,32 +1584,44 @@
                     const loan = {
                         id: Date.now(),
                         userId: currentUser.email,
-                        amount: loanType === 'taken' ? amount : -amount,
+                        amount,
                         person,
                         date,
                         description,
-                        paid: false, // Default to not paid
                         type: loanType,
-                        transactionType: 'loan'
+                        paid: false
                     };
                     
                     loans.push(loan);
                     localStorage.setItem('loans', JSON.stringify(loans));
                     
-                    alert(`${loanType === 'taken' ? 'Loan taken' : 'Loan given'} of $${amount} has been saved!`);
+                    alert(`Loan of $${amount} ${loanType === 'given' ? 'given to' : 'taken from'} ${person} has been recorded!`);
                     loanForm.reset();
                     document.getElementById('loanDate').value = formattedToday;
                     loanForm.style.display = 'none';
                     addLoanBtn.style.display = 'block';
-                    
                     displayLoans();
-                    updateDashboard();
                 }
             });
             
             // Export data
             exportBtn.addEventListener('click', function() {
-                exportData();
+                const userData = {
+                    expenses: expenses.filter(e => e.userId === currentUser.email),
+                    income: income.filter(i => i.userId === currentUser.email),
+                    savings: savings.filter(s => s.userId === currentUser.email),
+                    loans: loans.filter(l => l.userId === currentUser.email)
+                };
+                
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userData));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "fintrack_data.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                
+                alert('Your data has been exported successfully!');
             });
             
             // Import data
@@ -1612,681 +1632,558 @@
             importFile.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    importData(file);
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            
+                            // Filter out any data that doesn't belong to current user
+                            const userExpenses = expenses.filter(e => e.userId !== currentUser.email);
+                            const userIncome = income.filter(i => i.userId !== currentUser.email);
+                            const userSavings = savings.filter(s => s.userId !== currentUser.email);
+                            const userLoans = loans.filter(l => l.userId !== currentUser.email);
+                            
+                            // Add imported data
+                            expenses = [...userExpenses, ...importedData.expenses];
+                            income = [...userIncome, ...importedData.income];
+                            savings = [...userSavings, ...importedData.savings];
+                            loans = [...userLoans, ...importedData.loans];
+                            
+                            // Save to localStorage
+                            localStorage.setItem('expenses', JSON.stringify(expenses));
+                            localStorage.setItem('income', JSON.stringify(income));
+                            localStorage.setItem('savings', JSON.stringify(savings));
+                            localStorage.setItem('loans', JSON.stringify(loans));
+                            
+                            // Update UI
+                            displayExpenses();
+                            displayIncome();
+                            displaySavings();
+                            displayLoans();
+                            updateDashboard();
+                            
+                            alert('Data imported successfully!');
+                        } catch (error) {
+                            alert('Error importing data. Please make sure you selected a valid export file.');
+                        }
+                    };
+                    reader.readAsText(file);
                 }
             });
             
-            // Show dashboard function
+            // Helper functions
+            function showAuth() {
+                authContainer.style.display = 'flex';
+                dashboard.style.display = 'none';
+            }
+            
             function showDashboard() {
                 authContainer.style.display = 'none';
                 dashboard.style.display = 'block';
             }
             
-            // Show auth function
-            function showAuth() {
-                authContainer.style.display = 'flex';
-                dashboard.style.display = 'none';
-                
-                // Reset forms
-                loginForm.reset();
-                signupForm.reset();
-            }
-            
-            // Load user data
             function loadUserData() {
-                if (!currentUser) return;
-                
-                // Filter data for current user
-                expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-                income = JSON.parse(localStorage.getItem('income')) || [];
-                savings = JSON.parse(localStorage.getItem('savings')) || [];
-                loans = JSON.parse(localStorage.getItem('loans')) || [];
-                
+                // Filter data for current user only
                 expenses = expenses.filter(e => e.userId === currentUser.email);
                 income = income.filter(i => i.userId === currentUser.email);
                 savings = savings.filter(s => s.userId === currentUser.email);
                 loans = loans.filter(l => l.userId === currentUser.email);
                 
-                // Display data
-                displayExpenses();
-                displayIncome();
-                displaySavings();
-                displayLoans();
+                // Save filtered data back to localStorage
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                localStorage.setItem('income', JSON.stringify(income));
+                localStorage.setItem('savings', JSON.stringify(savings));
+                localStorage.setItem('loans', JSON.stringify(loans));
             }
             
-            // Update category dropdowns
-            function updateCategoryDropdowns() {
-                const expenseCategory = document.getElementById('expenseCategory');
-                const expenseCategoryFilter = document.getElementById('expenseCategoryFilter');
-                const incomeCategory = document.getElementById('incomeCategory');
-                const incomeCategoryFilter = document.getElementById('incomeCategoryFilter');
-                
-                // Clear existing options except the first one
-                while (expenseCategory.options.length > 1) {
-                    expenseCategory.remove(1);
-                }
-                while (expenseCategoryFilter.options.length > 1) {
-                    expenseCategoryFilter.remove(1);
-                }
-                while (incomeCategory.options.length > 1) {
-                    incomeCategory.remove(1);
-                }
-                while (incomeCategoryFilter.options.length > 1) {
-                    incomeCategoryFilter.remove(1);
-                }
-                
-                // Add categories to expense dropdowns
-                categories.forEach(category => {
-                    expenseCategory.appendChild(new Option(category, category));
-                    expenseCategoryFilter.appendChild(new Option(category, category));
-                });
-                
-                // Add categories to income dropdowns
-                incomeCategories.forEach(category => {
-                    incomeCategory.appendChild(new Option(category, category));
-                    incomeCategoryFilter.appendChild(new Option(category, category));
-                });
-            }
-            
-            // Update person dropdown
-            function updatePersonDropdown() {
-                const loanPerson = document.getElementById('loanPerson');
-                
-                // Clear existing options except the first one
-                while (loanPerson.options.length > 1) {
-                    loanPerson.remove(1);
-                }
-                
-                // Add persons to dropdown
-                persons.forEach(person => {
-                    loanPerson.appendChild(new Option(person, person));
-                });
-            }
-            
-            // Show specific module
-            function showModule(moduleName) {
+            function showModule(module) {
                 // Hide all modules
-                const modules = document.querySelectorAll('.module');
-                modules.forEach(m => m.style.display = 'none');
+                document.querySelectorAll('.module').forEach(m => {
+                    m.style.display = 'none';
+                });
                 
-                // Hide all forms
-                expenseForm.style.display = 'none';
-                incomeForm.style.display = 'none';
-                savingsForm.style.display = 'none';
-                loanForm.style.display = 'none';
+                // Show selected module
+                document.getElementById(`${module}Module`).style.display = 'block';
                 
-                // Show add buttons
-                addExpenseBtn.style.display = 'block';
-                addIncomeBtn.style.display = 'block';
-                addSavingsBtn.style.display = 'block';
-                addLoanBtn.style.display = 'block';
-                
-                // Show the selected module
-                const selectedModule = document.getElementById(moduleName + 'Module');
-                if (selectedModule) {
-                    selectedModule.style.display = 'block';
-                } else {
-                    document.getElementById('dashboardModule').style.display = 'block';
+                // Load module-specific data
+                switch(module) {
+                    case 'expenses':
+                        displayExpenses();
+                        break;
+                    case 'income':
+                        displayIncome();
+                        break;
+                    case 'savings':
+                        displaySavings();
+                        break;
+                    case 'loans':
+                        displayLoans();
+                        break;
+                    case 'dashboard':
+                        updateDashboard();
+                        break;
                 }
             }
             
-            // Display expenses with delete buttons
+            function updateDashboard() {
+                // Calculate totals
+                const totalIncome = income
+                    .filter(i => i.userId === currentUser.email)
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const totalExpenses = expenses
+                    .filter(e => e.userId === currentUser.email)
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const savingsAdd = savings
+                    .filter(s => s.userId === currentUser.email && s.type === 'add')
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const savingsWithdraw = savings
+                    .filter(s => s.userId === currentUser.email && s.type === 'withdraw')
+                    .reduce((sum, item) => sum + item.amount, 0);
+                
+                const totalSavings = savingsAdd - savingsWithdraw;
+                const totalBalance = totalIncome - totalExpenses;
+                
+                // Update dashboard values
+                document.getElementById('totalBalance').textContent = `$${totalBalance.toFixed(2)}`;
+                document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+                document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
+                document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
+                
+                // Display recent transactions
+                displayRecentTransactions();
+            }
+            
+            function displayRecentTransactions() {
+                const container = document.getElementById('recentTransactions');
+                container.innerHTML = '';
+                
+                // Get all transactions
+                const allTransactions = [
+                    ...expenses.filter(e => e.userId === currentUser.email).map(e => ({ ...e, type: 'expense' })),
+                    ...income.filter(i => i.userId === currentUser.email).map(i => ({ ...i, type: 'income' })),
+                    ...savings.filter(s => s.userId === currentUser.email).map(s => ({ ...s, type: 'savings' })),
+                    ...loans.filter(l => l.userId === currentUser.email).map(l => ({ ...l, type: 'loan' }))
+                ];
+                
+                // Sort by date (newest first)
+                allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                // Show only the 5 most recent
+                const recent = allTransactions.slice(0, 5);
+                
+                if (recent.length === 0) {
+                    container.innerHTML = '<p>No recent transactions</p>';
+                    return;
+                }
+                
+                recent.forEach(transaction => {
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
+                    
+                    let title = '';
+                    let amountClass = '';
+                    let amountPrefix = '';
+                    
+                    if (transaction.type === 'expense') {
+                        title = `Expense: ${transaction.category}`;
+                        amountClass = 'expense-amount';
+                        amountPrefix = '-';
+                    } else if (transaction.type === 'income') {
+                        title = `Income: ${transaction.category}`;
+                        amountClass = 'income-amount';
+                        amountPrefix = '+';
+                    } else if (transaction.type === 'savings') {
+                        title = `Savings: ${transaction.type === 'add' ? 'Added' : 'Withdrawn'}`;
+                        amountClass = transaction.type === 'add' ? 'income-amount' : 'expense-amount';
+                        amountPrefix = transaction.type === 'add' ? '+' : '-';
+                    } else if (transaction.type === 'loan') {
+                        title = `Loan ${transaction.type}: ${transaction.person}`;
+                        amountClass = transaction.type === 'given' ? 'expense-amount' : 'income-amount';
+                        amountPrefix = transaction.type === 'given' ? '-' : '+';
+                    }
+                    
+                    const date = new Date(transaction.date).toLocaleDateString();
+                    
+                    item.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-title">${title}</div>
+                            <div class="transaction-meta">
+                                <span>${date}</span>
+                                ${transaction.description ? `<span>${transaction.description}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="transaction-amount ${amountClass}">
+                            ${amountPrefix}$${transaction.amount.toFixed(2)}
+                        </div>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+            }
+            
             function displayExpenses() {
-                const expensesList = document.getElementById('expensesList');
-                if (!expensesList) return;
+                const container = document.getElementById('expensesList');
+                container.innerHTML = '';
                 
-                expensesList.innerHTML = '';
+                const categoryFilter = document.getElementById('expenseCategoryFilter').value;
+                const sortBy = document.getElementById('expenseSort').value;
                 
-                const userExpenses = expenses.filter(e => e.userId === currentUser.email);
+                let userExpenses = expenses.filter(e => e.userId === currentUser.email);
+                
+                // Apply category filter
+                if (categoryFilter !== 'all') {
+                    userExpenses = userExpenses.filter(e => e.category === categoryFilter);
+                }
+                
+                // Apply sorting
+                switch(sortBy) {
+                    case 'newest':
+                        userExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userExpenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userExpenses.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userExpenses.sort((a, b) => a.amount - b.amount);
+                        break;
+                    case 'category':
+                        userExpenses.sort((a, b) => a.category.localeCompare(b.category));
+                        break;
+                }
                 
                 if (userExpenses.length === 0) {
-                    expensesList.innerHTML = '<p>No expenses recorded yet.</p>';
+                    container.innerHTML = '<p>No expenses recorded yet</p>';
                     return;
                 }
                 
                 userExpenses.forEach(expense => {
-                    const expenseDate = new Date(expense.date).toLocaleDateString();
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
                     
-                    const expenseElement = document.createElement('div');
-                    expenseElement.className = 'transaction-item';
-                    expenseElement.innerHTML = `
+                    const date = new Date(expense.date).toLocaleDateString();
+                    
+                    item.innerHTML = `
                         <div class="transaction-details">
                             <div class="transaction-title">${expense.category}</div>
                             <div class="transaction-meta">
-                                <span>${expenseDate}</span>
-                                <span>${expense.description || 'No description'}</span>
+                                <span>${date}</span>
+                                ${expense.description ? `<span>${expense.description}</span>` : ''}
                             </div>
                         </div>
-                        <div class="transaction-actions">
-                            <div class="transaction-amount expense-amount">-$${expense.amount.toFixed(2)}</div>
-                            <button class="delete-btn" data-id="${expense.id}" data-type="expense">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="transaction-amount expense-amount">
+                            -$${expense.amount.toFixed(2)}
                         </div>
+                        <button class="delete-btn" data-id="${expense.id}" data-type="expense">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     `;
                     
-                    expensesList.appendChild(expenseElement);
+                    container.appendChild(item);
                 });
                 
                 // Add event listeners to delete buttons
                 document.querySelectorAll('.delete-btn[data-type="expense"]').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = parseInt(this.getAttribute('data-id'));
-                        deleteTransaction(id, 'expense');
+                        if (confirm('Are you sure you want to delete this expense?')) {
+                            expenses = expenses.filter(e => e.id !== id);
+                            localStorage.setItem('expenses', JSON.stringify(expenses));
+                            displayExpenses();
+                            updateDashboard();
+                        }
                     });
                 });
             }
             
-            // Display income with delete buttons
             function displayIncome() {
-                const incomeList = document.getElementById('incomeList');
-                if (!incomeList) return;
+                // Similar implementation to displayExpenses but for income
+                const container = document.getElementById('incomeList');
+                container.innerHTML = '';
                 
-                incomeList.innerHTML = '';
+                const categoryFilter = document.getElementById('incomeCategoryFilter').value;
+                const sortBy = document.getElementById('incomeSort').value;
                 
-                const userIncome = income.filter(i => i.userId === currentUser.email);
+                let userIncome = income.filter(i => i.userId === currentUser.email);
+                
+                if (categoryFilter !== 'all') {
+                    userIncome = userIncome.filter(i => i.category === categoryFilter);
+                }
+                
+                switch(sortBy) {
+                    case 'newest':
+                        userIncome.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userIncome.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userIncome.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userIncome.sort((a, b) => a.amount - b.amount);
+                        break;
+                    case 'category':
+                        userIncome.sort((a, b) => a.category.localeCompare(b.category));
+                        break;
+                }
                 
                 if (userIncome.length === 0) {
-                    incomeList.innerHTML = '<p>No income recorded yet.</p>';
+                    container.innerHTML = '<p>No income recorded yet</p>';
                     return;
                 }
                 
-                userIncome.forEach(incomeItem => {
-                    const incomeDate = new Date(incomeItem.date).toLocaleDateString();
+                userIncome.forEach(incomeEntry => {
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
                     
-                    const incomeElement = document.createElement('div');
-                    incomeElement.className = 'transaction-item';
-                    incomeElement.innerHTML = `
+                    const date = new Date(incomeEntry.date).toLocaleDateString();
+                    
+                    item.innerHTML = `
                         <div class="transaction-details">
-                            <div class="transaction-title">${incomeItem.category}</div>
+                            <div class="transaction-title">${incomeEntry.category}</div>
                             <div class="transaction-meta">
-                                <span>${incomeDate}</span>
-                                <span>${incomeItem.description || 'No description'}</span>
+                                <span>${date</span>
+                                ${incomeEntry.description ? `<span>${incomeEntry.description}</span>` : ''}
                             </div>
                         </div>
-                        <div class="transaction-actions">
-                            <div class="transaction-amount income-amount">+$${incomeItem.amount.toFixed(2)}</div>
-                            <button class="delete-btn" data-id="${incomeItem.id}" data-type="income">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="transaction-amount income-amount">
+                            +$${incomeEntry.amount.toFixed(2)}
                         </div>
+                        <button class="delete-btn" data-id="${incomeEntry.id}" data-type="income">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     `;
                     
-                    incomeList.appendChild(incomeElement);
+                    container.appendChild(item);
                 });
                 
-                // Add event listeners to delete buttons
                 document.querySelectorAll('.delete-btn[data-type="income"]').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = parseInt(this.getAttribute('data-id'));
-                        deleteTransaction(id, 'income');
+                        if (confirm('Are you sure you want to delete this income entry?')) {
+                            income = income.filter(i => i.id !== id);
+                            localStorage.setItem('income', JSON.stringify(income));
+                            displayIncome();
+                            updateDashboard();
+                        }
                     });
                 });
             }
             
-            // Display savings with delete buttons
             function displaySavings() {
-                const savingsList = document.getElementById('savingsList');
-                if (!savingsList) return;
+                // Similar implementation for savings
+                const container = document.getElementById('savingsList');
+                container.innerHTML = '';
                 
-                savingsList.innerHTML = '';
+                const typeFilter = document.getElementById('savingsTypeFilter').value;
+                const sortBy = document.getElementById('savingsSort').value;
                 
-                const userSavings = savings.filter(s => s.userId === currentUser.email);
+                let userSavings = savings.filter(s => s.userId === currentUser.email);
+                
+                if (typeFilter !== 'all') {
+                    userSavings = userSavings.filter(s => s.type === typeFilter);
+                }
+                
+                switch(sortBy) {
+                    case 'newest':
+                        userSavings.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userSavings.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userSavings.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userSavings.sort((a, b) => a.amount - b.amount);
+                        break;
+                }
                 
                 if (userSavings.length === 0) {
-                    savingsList.innerHTML = '<p>No savings transactions recorded yet.</p>';
+                    container.innerHTML = '<p>No savings transactions yet</p>';
                     return;
                 }
                 
-                userSavings.forEach(saving => {
-                    const savingsDate = new Date(saving.date).toLocaleDateString();
-                    const isWithdrawal = saving.amount < 0;
+                userSavings.forEach(savingsEntry => {
+                    const item = document.createElement('div');
+                    item.className = 'transaction-item';
                     
-                    const savingsElement = document.createElement('div');
-                    savingsElement.className = 'transaction-item';
-                    savingsElement.innerHTML = `
+                    const date = new Date(savingsEntry.date).toLocaleDateString();
+                    const isAdd = savingsEntry.type === 'add';
+                    
+                    item.innerHTML = `
                         <div class="transaction-details">
-                            <div class="transaction-title">${isWithdrawal ? 'Withdrawal' : 'Deposit'}</div>
+                            <div class="transaction-title">Savings: ${isAdd ? 'Added' : 'Withdrawn'}</div>
                             <div class="transaction-meta">
-                                <span>${savingsDate}</span>
-                                <span>${saving.description || 'No description'}</span>
+                                <span>${date}</span>
+                                ${savingsEntry.description ? `<span>${savingsEntry.description}</span>` : ''}
                             </div>
                         </div>
-                        <div class="transaction-actions">
-                            <div class="transaction-amount ${isWithdrawal ? 'expense-amount' : 'income-amount'}">${isWithdrawal ? '-' : '+'}$${Math.abs(saving.amount).toFixed(2)}</div>
-                            <button class="delete-btn" data-id="${saving.id}" data-type="savings">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="transaction-amount ${isAdd ? 'income-amount' : 'expense-amount'}">
+                            ${isAdd ? '+' : '-'}$${savingsEntry.amount.toFixed(2)}
                         </div>
+                        <button class="delete-btn" data-id="${savingsEntry.id}" data-type="savings">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     `;
                     
-                    savingsList.appendChild(savingsElement);
+                    container.appendChild(item);
                 });
                 
-                // Add event listeners to delete buttons
                 document.querySelectorAll('.delete-btn[data-type="savings"]').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = parseInt(this.getAttribute('data-id'));
-                        deleteTransaction(id, 'savings');
+                        if (confirm('Are you sure you want to delete this savings transaction?')) {
+                            savings = savings.filter(s => s.id !== id);
+                            localStorage.setItem('savings', JSON.stringify(savings));
+                            displaySavings();
+                            updateDashboard();
+                        }
                     });
                 });
             }
             
-            // Display loans with status checkboxes
             function displayLoans() {
-                const loansList = document.getElementById('loansList');
-                if (!loansList) return;
+                // Similar implementation for loans
+                const container = document.getElementById('loansList');
+                container.innerHTML = '';
                 
-                loansList.innerHTML = '';
-                
-                const loanType = document.querySelector('.loan-type-btn.active').getAttribute('data-type');
                 const statusFilter = document.getElementById('loanStatusFilter').value;
+                const sortBy = document.getElementById('loanSort').value;
+                const loanType = document.querySelector('.loan-type-btn.active').getAttribute('data-type');
                 
                 let userLoans = loans.filter(l => l.userId === currentUser.email && l.type === loanType);
                 
-                // Apply status filter
                 if (statusFilter !== 'all') {
-                    userLoans = userLoans.filter(loan => {
-                        return statusFilter === 'paid' ? loan.paid : !loan.paid;
-                    });
+                    const filterPaid = statusFilter === 'paid';
+                    userLoans = userLoans.filter(l => l.paid === filterPaid);
+                }
+                
+                switch(sortBy) {
+                    case 'newest':
+                        userLoans.sort((a, b) => new Date(b.date) - new Date(a.date));
+                        break;
+                    case 'oldest':
+                        userLoans.sort((a, b) => new Date(a.date) - new Date(b.date));
+                        break;
+                    case 'highest':
+                        userLoans.sort((a, b) => b.amount - a.amount);
+                        break;
+                    case 'lowest':
+                        userLoans.sort((a, b) => a.amount - b.amount);
+                        break;
+                    case 'person':
+                        userLoans.sort((a, b) => a.person.localeCompare(b.person));
+                        break;
                 }
                 
                 if (userLoans.length === 0) {
-                    loansList.innerHTML = '<p>No loans recorded yet.</p>';
+                    container.innerHTML = '<p>No loans recorded yet</p>';
                     return;
                 }
                 
                 userLoans.forEach(loan => {
-                    const loanDate = new Date(loan.date).toLocaleDateString();
-                    const isGiven = loan.amount < 0;
+                    const item = document.createElement('div');
+                    item.className = `transaction-item ${loan.paid ? 'paid-loan' : ''}`;
                     
-                    const loanElement = document.createElement('div');
-                    loanElement.className = `transaction-item ${loan.paid ? 'paid-loan' : ''}`;
-                    loanElement.innerHTML = `
+                    const date = new Date(loan.date).toLocaleDateString();
+                    const isGiven = loan.type === 'given';
+                    
+                    item.innerHTML = `
                         <div class="transaction-details">
-                            <div class="transaction-title">${isGiven ? 'Given to' : 'Taken from'} ${loan.person}</div>
+                            <div class="transaction-title">${isGiven ? 'Given to' : 'Taken from'}: ${loan.person}</div>
                             <div class="transaction-meta">
-                                <span>${loanDate}</span>
-                                <span>${loan.description || 'No description'}</span>
+                                <span>${date}</span>
+                                ${loan.description ? `<span>${loan.description}</span>` : ''}
                             </div>
                             <div class="loan-status">
-                                <input type="checkbox" id="loan-${loan.id}" class="status-checkbox" ${loan.paid ? 'checked' : ''}>
-                                <label for="loan-${loan.id}" class="status-label">${isGiven ? 'Returned' : 'Paid'}</label>
+                                <input type="checkbox" id="loan-${loan.id}" ${loan.paid ? 'checked' : ''} class="status-checkbox">
+                                <label for="loan-${loan.id}" class="status-label">Paid</label>
                             </div>
                         </div>
-                        <div class="transaction-actions">
-                            <div class="transaction-amount ${isGiven ? 'expense-amount' : 'income-amount'}">${isGiven ? '-' : '+'}$${Math.abs(loan.amount).toFixed(2)}</div>
-                            <button class="delete-btn" data-id="${loan.id}" data-type="loan">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="transaction-amount ${isGiven ? 'expense-amount' : 'income-amount'}">
+                            ${isGiven ? '-' : '+'}$${loan.amount.toFixed(2)}
                         </div>
+                        <button class="delete-btn" data-id="${loan.id}" data-type="loan">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     `;
                     
-                    loansList.appendChild(loanElement);
+                    container.appendChild(item);
                     
-                    // Add event listener to checkbox
+                    // Add event listener to the checkbox
                     const checkbox = document.getElementById(`loan-${loan.id}`);
                     checkbox.addEventListener('change', function() {
-                        updateLoanStatus(loan.id, this.checked);
+                        loan.paid = this.checked;
+                        localStorage.setItem('loans', JSON.stringify(loans));
+                        displayLoans();
                     });
                 });
                 
-                // Add event listeners to delete buttons
                 document.querySelectorAll('.delete-btn[data-type="loan"]').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = parseInt(this.getAttribute('data-id'));
-                        deleteTransaction(id, 'loan');
-                    });
-                });
-            }
-            
-            // Update loan status
-            function updateLoanStatus(id, paid) {
-                const loanIndex = loans.findIndex(l => l.id === id);
-                if (loanIndex !== -1) {
-                    loans[loanIndex].paid = paid;
-                    localStorage.setItem('loans', JSON.stringify(loans));
-                    
-                    // Update dashboard to reflect changes
-                    updateDashboard();
-                    displayLoans();
-                }
-            }
-            
-            // Delete transaction
-            function deleteTransaction(id, type) {
-                if (confirm('Are you sure you want to delete this transaction?')) {
-                    let updated = false;
-                    
-                    switch (type) {
-                        case 'expense':
-                            expenses = expenses.filter(e => e.id !== id);
-                            localStorage.setItem('expenses', JSON.stringify(expenses));
-                            updated = true;
-                            break;
-                        case 'income':
-                            income = income.filter(i => i.id !== id);
-                            localStorage.setItem('income', JSON.stringify(income));
-                            updated = true;
-                            break;
-                        case 'savings':
-                            savings = savings.filter(s => s.id !== id);
-                            localStorage.setItem('savings', JSON.stringify(savings));
-                            updated = true;
-                            break;
-                        case 'loan':
+                        if (confirm('Are you sure you want to delete this loan record?')) {
                             loans = loans.filter(l => l.id !== id);
                             localStorage.setItem('loans', JSON.stringify(loans));
-                            updated = true;
-                            break;
-                    }
-                    
-                    if (updated) {
-                        loadUserData();
-                        updateDashboard();
-                        alert('Transaction deleted successfully!');
-                    }
-                }
-            }
-            
-            // Update dashboard with calculated values
-            function updateDashboard() {
-                if (!currentUser) return;
-                
-                // Calculate totals
-                const totalExpenses = expenses
-                    .filter(e => e.userId === currentUser.email)
-                    .reduce((sum, expense) => sum + expense.amount, 0);
-                
-                const totalIncome = income
-                    .filter(i => i.userId === currentUser.email)
-                    .reduce((sum, incomeItem) => sum + incomeItem.amount, 0);
-                
-                const totalSavings = savings
-                    .filter(s => s.userId === currentUser.email)
-                    .reduce((sum, saving) => sum + saving.amount, 0);
-                
-                // Calculate loans - only include unpaid loans in the balance
-                const totalLoans = loans
-                    .filter(l => l.userId === currentUser.email && !l.paid)
-                    .reduce((sum, loan) => sum + loan.amount, 0);
-                
-                // Update UI
-                document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
-                document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
-                document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
-                document.getElementById('totalBalance').textContent = `$${(totalIncome - totalExpenses + totalSavings + totalLoans).toFixed(2)}`;
-                
-                // Update recent transactions
-                const recentTransactions = document.getElementById('recentTransactions');
-                if (recentTransactions) {
-                    recentTransactions.innerHTML = '';
-                    
-                    // Combine all transactions
-                    const allTransactions = [
-                        ...expenses.filter(e => e.userId === currentUser.email).map(e => ({ ...e, transType: 'expense' })),
-                        ...income.filter(i => i.userId === currentUser.email).map(i => ({ ...i, transType: 'income' })),
-                        ...savings.filter(s => s.userId === currentUser.email).map(s => ({ ...s, transType: 'savings' })),
-                        ...loans.filter(l => l.userId === currentUser.email).map(l => ({ ...l, transType: 'loan' }))
-                    ];
-                    
-                    // Sort by date (newest first)
-                    allTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    
-                    // Show only the 5 most recent
-                    const recent = allTransactions.slice(0, 5);
-                    
-                    if (recent.length === 0) {
-                        recentTransactions.innerHTML = '<p>No transactions recorded yet.</p>';
-                        return;
-                    }
-                    
-                    recent.forEach(transaction => {
-                        const transDate = new Date(transaction.date).toLocaleDateString();
-                        const isExpense = transaction.transType === 'expense' || (transaction.transType === 'savings' && transaction.amount < 0) || (transaction.transType === 'loan' && transaction.amount < 0);
-                        
-                        let title = '';
-                        if (transaction.transType === 'expense') title = transaction.category;
-                        else if (transaction.transType === 'income') title = transaction.category;
-                        else if (transaction.transType === 'savings') title = transaction.amount < 0 ? 'Savings Withdrawal' : 'Savings Deposit';
-                        else if (transaction.transType === 'loan') title = transaction.amount < 0 ? `Loan to ${transaction.person}` : `Loan from ${transaction.person}`;
-                        
-                        const transactionElement = document.createElement('div');
-                        transactionElement.className = 'transaction-item';
-                        
-                        if (transaction.transType === 'loan') {
-                            const isGiven = transaction.amount < 0;
-                            transactionElement.innerHTML = `
-                                <div class="transaction-details">
-                                    <div class="transaction-title">${title}</div>
-                                    <div class="transaction-meta">
-                                        <span>${transDate}</span>
-                                        <span>${transaction.description || 'No description'}</span>
-                                    </div>
-                                    <div class="loan-status">
-                                        <input type="checkbox" id="recent-loan-${transaction.id}" class="status-checkbox" ${transaction.paid ? 'checked' : ''}>
-                                        <label for="recent-loan-${transaction.id}" class="status-label">${isGiven ? 'Returned' : 'Paid'}</label>
-                                    </div>
-                                </div>
-                                <div class="transaction-actions">
-                                    <div class="transaction-amount ${isExpense ? 'expense-amount' : 'income-amount'}">${isExpense ? '-' : '+'}$${Math.abs(transaction.amount).toFixed(2)}</div>
-                                    <button class="delete-btn" data-id="${transaction.id}" data-type="${transaction.transType}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            `;
-                            
-                            // Add event listener to checkbox
-                            const checkbox = document.getElementById(`recent-loan-${transaction.id}`);
-                            checkbox.addEventListener('change', function() {
-                                updateLoanStatus(transaction.id, this.checked);
-                            });
-                        } else {
-                            transactionElement.innerHTML = `
-                                <div class="transaction-details">
-                                    <div class="transaction-title">${title}</div>
-                                    <div class="transaction-meta">
-                                        <span>${transDate}</span>
-                                        <span>${transaction.description || 'No description'}</span>
-                                    </div>
-                                </div>
-                                <div class="transaction-actions">
-                                    <div class="transaction-amount ${isExpense ? 'expense-amount' : 'income-amount'}">${isExpense ? '-' : '+'}$${Math.abs(transaction.amount).toFixed(2)}</div>
-                                    <button class="delete-btn" data-id="${transaction.id}" data-type="${transaction.transType}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            `;
+                            displayLoans();
                         }
-                        
-                        recentTransactions.appendChild(transactionElement);
                     });
-                    
-                    // Add event listeners to delete buttons
-                    document.querySelectorAll('#recentTransactions .delete-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const id = parseInt(this.getAttribute('data-id'));
-                            const type = this.getAttribute('data-type');
-                            deleteTransaction(id, type);
-                        });
-                    });
-                }
+                });
             }
             
-            // Export data to CSV
-            function exportData() {
-                if (!currentUser) return;
+            function updateCategoryDropdowns() {
+                // Update expense category dropdown
+                const expenseCategory = document.getElementById('expenseCategory');
+                const expenseCategoryFilter = document.getElementById('expenseCategoryFilter');
                 
-                const userExpenses = expenses.filter(e => e.userId === currentUser.email);
-                const userIncome = income.filter(i => i.userId === currentUser.email);
-                const userSavings = savings.filter(s => s.userId === currentUser.email);
-                const userLoans = loans.filter(l => l.userId === currentUser.email);
+                expenseCategory.innerHTML = '<option value="">Select Category</option>';
+                expenseCategoryFilter.innerHTML = '<option value="all">All Categories</option>';
                 
-                // Create CSV content
-                let csvContent = "Type,Date,Amount,Category,Description,Person,Status\n";
-                
-                // Add expenses
-                userExpenses.forEach(expense => {
-                    csvContent += `Expense,${expense.date},${expense.amount},${expense.category},"${expense.description || ''}",,\n`;
+                categories.forEach(category => {
+                    expenseCategory.innerHTML += `<option value="${category}">${category}</option>`;
+                    expenseCategoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
                 });
                 
-                // Add income
-                userIncome.forEach(incomeItem => {
-                    csvContent += `Income,${incomeItem.date},${incomeItem.amount},${incomeItem.category},"${incomeItem.description || ''}",,\n`;
+                // Update income category dropdown
+                const incomeCategory = document.getElementById('incomeCategory');
+                const incomeCategoryFilter = document.getElementById('incomeCategoryFilter');
+                
+                incomeCategory.innerHTML = '<option value="">Select Category</option>';
+                incomeCategoryFilter.innerHTML = '<option value="all">All Categories</option>';
+                
+                incomeCategories.forEach(category => {
+                    incomeCategory.innerHTML += `<option value="${category}">${category}</option>`;
+                    incomeCategoryFilter.innerHTML += `<option value="${category}">${category}</option>`;
                 });
-                
-                // Add savings
-                userSavings.forEach(saving => {
-                    const type = saving.amount < 0 ? 'Savings Withdrawal' : 'Savings Deposit';
-                    csvContent += `Savings,${saving.date},${Math.abs(saving.amount)},${type},"${saving.description || ''}",,\n`;
-                });
-                
-                // Add loans
-                userLoans.forEach(loan => {
-                    const type = loan.amount < 0 ? 'Loan Given' : 'Loan Taken';
-                    csvContent += `Loan,${loan.date},${Math.abs(loan.amount)},${type},"${loan.description || ''}",${loan.person},${loan.paid ? 'Paid' : 'Pending'}\n`;
-                });
-                
-                // Create download link
-                const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "fintrack_data.csv");
-                document.body.appendChild(link);
-                
-                link.click();
-                document.body.removeChild(link);
             }
             
-            // Import data from CSV
-            function importData(file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const csvContent = e.target.result;
-                    const lines = csvContent.split('\n');
-                    
-                    let importedCount = 0;
-                    
-                    // Skip header line
-                    for (let i = 1; i < lines.length; i++) {
-                        const line = lines[i].trim();
-                        if (!line) continue;
-                        
-                        // Parse CSV line (handle quoted fields)
-                        const values = [];
-                        let inQuotes = false;
-                        let currentValue = '';
-                        
-                        for (let j = 0; j < line.length; j++) {
-                            const char = line[j];
-                            
-                            if (char === '"') {
-                                inQuotes = !inQuotes;
-                            } else if (char === ',' && !inQuotes) {
-                                values.push(currentValue);
-                                currentValue = '';
-                            } else {
-                                currentValue += char;
-                            }
-                        }
-                        values.push(currentValue);
-                        
-                        if (values.length < 3) continue;
-                        
-                        const type = values[0];
-                        const date = values[1];
-                        const amount = parseFloat(values[2]);
-                        
-                        if (isNaN(amount)) continue;
-                        
-                        if (type === 'Expense') {
-                            const category = values[3];
-                            const description = values[4] || '';
-                            
-                            const expense = {
-                                id: Date.now() + i,
-                                userId: currentUser.email,
-                                amount: amount,
-                                category: category,
-                                date: date,
-                                description: description,
-                                type: 'expense'
-                            };
-                            
-                            expenses.push(expense);
-                            importedCount++;
-                        } else if (type === 'Income') {
-                            const category = values[3];
-                            const description = values[4] || '';
-                            
-                            const incomeItem = {
-                                id: Date.now() + i,
-                                userId: currentUser.email,
-                                amount: amount,
-                                category: category,
-                                date: date,
-                                description: description,
-                                type: 'income'
-                            };
-                            
-                            income.push(incomeItem);
-                            importedCount++;
-                        } else if (type === 'Savings') {
-                            const savingsType = values[3];
-                            const description = values[4] || '';
-                            
-                            const savingsItem = {
-                                id: Date.now() + i,
-                                userId: currentUser.email,
-                                amount: savingsType === 'Savings Withdrawal' ? -amount : amount,
-                                type: savingsType === 'Savings Withdrawal' ? 'withdraw' : 'add',
-                                date: date,
-                                description: description,
-                                transactionType: 'savings'
-                            };
-                            
-                            savings.push(savingsItem);
-                            importedCount++;
-                        } else if (type === 'Loan') {
-                            const loanType = values[3];
-                            const description = values[4] || '';
-                            const person = values[5] || '';
-                            const status = values[6] || '';
-                            
-                            const loan = {
-                                id: Date.now() + i,
-                                userId: currentUser.email,
-                                amount: loanType === 'Loan Given' ? -amount : amount,
-                                person: person,
-                                date: date,
-                                description: description,
-                                paid: status === 'Paid',
-                                type: loanType === 'Loan Given' ? 'given' : 'taken',
-                                transactionType: 'loan'
-                            };
-                            
-                            loans.push(loan);
-                            importedCount++;
-                        }
-                    }
-                    
-                    // Save to localStorage
-                    localStorage.setItem('expenses', JSON.stringify(expenses));
-                    localStorage.setItem('income', JSON.stringify(income));
-                    localStorage.setItem('savings', JSON.stringify(savings));
-                    localStorage.setItem('loans', JSON.stringify(loans));
-                    
-                    // Update UI
-                    loadUserData();
-                    updateDashboard();
-                    
-                    alert(`Data imported successfully! ${importedCount} transactions added.`);
-                };
+            function updatePersonDropdown() {
+                const loanPerson = document.getElementById('loanPerson');
+                loanPerson.innerHTML = '<option value="">Select Person</option>';
                 
-                reader.readAsText(file);
+                persons.forEach(person => {
+                    loanPerson.innerHTML += `<option value="${person}">${person}</option>`;
+                });
             }
             
-            // Add event listeners for filters
+            // Initialize dropdowns and displays
+            updateCategoryDropdowns();
+            updatePersonDropdown();
+            
+            // Add event listeners to filter dropdowns
+            document.getElementById('expenseCategoryFilter').addEventListener('change', displayExpenses);
+            document.getElementById('expenseSort').addEventListener('change', displayExpenses);
+            document.getElementById('incomeCategoryFilter').addEventListener('change', displayIncome);
+            document.getElementById('incomeSort').addEventListener('change', displayIncome);
+            document.getElementById('savingsTypeFilter').addEventListener('change', displaySavings);
+            document.getElementById('savingsSort').addEventListener('change', displaySavings);
             document.getElementById('loanStatusFilter').addEventListener('change', displayLoans);
             document.getElementById('loanSort').addEventListener('change', displayLoans);
         });
