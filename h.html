@@ -1876,7 +1876,8 @@
                     .reduce((sum, item) => sum + item.amount, 0);
                 
                 const totalSavings = savingsAdd - savingsWithdraw;
-                const totalBalance = totalIncome - totalExpenses;
+                const totalBalance = totalIncome - totalExpenses + total savings + netloans;
+                const netloans = loansGiven - loansTaken;
                 
                 // Calculate loans
                 const loansGiven = loans
